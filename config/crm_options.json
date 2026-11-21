@@ -127,66 +127,9 @@
           ]
         },
         {
-          "value": "familiar_ciudadano_es",
-          "label_es": "Familiar de ciudadano español",
-          "label_ru": "Член семьи гражданина Испании",
-          "situacion": [
-            "residencia_familiar_es"
-          ]
-        },
-        {
-          "value": "familiar_ciudadano_ue",
-          "label_es": "Familiar de ciudadano de la UE",
-          "label_ru": "Член семьи гражданина ЕС",
-          "situacion": [
-            "residencia_familiar_ue"
-          ]
-        },
-        {
-          "value": "arraigo_social",
-          "label_es": "Arraigo social",
-          "label_ru": "Социальное укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales"
-          ]
-        },
-        {
-          "value": "arraigo_sociolaboral",
-          "label_es": "Arraigo sociolaboral",
-          "label_ru": "Трудовое укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales"
-          ]
-        },
-        {
-          "value": "arraigo_socioformativo",
-          "label_es": "Arraigo socioformativo",
-          "label_ru": "Учебное укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales"
-          ]
-        },
-        {
-          "value": "arraigo_familiar",
-          "label_es": "Arraigo familiar",
-          "label_ru": "Семейное укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales"
-          ],
-          "note": "Сохранён согласно Reglamento RD 1155/2024"
-        },
-        {
-          "value": "arraigo_segunda_oportunidad",
-          "label_es": "Arraigo de segunda oportunidad",
-          "label_ru": "Укоренение «второй шанс»",
-          "situacion": [
-            "residencia_circunstancias_excepcionales"
-          ]
-        },
-        {
           "value": "teletrabajo_internacional",
-          "label_es": "Autorización de residencia para teletrabajo de carácter internacional",
-          "label_ru": "Международный телеработник",
+          "label_es": "Teletrabajo de carácter internacional",
+          "label_ru": "Международный телеработник (цифровой кочевник)",
           "situacion": [
             "residencia_temporal"
           ],
@@ -233,11 +176,65 @@
           ]
         },
         {
-          "value": "proteccion_temporal",
-          "label_es": "Protección temporal",
-          "label_ru": "Временная защита",
+          "value": "familiar_ciudadano_es",
+          "label_es": "Familiar de ciudadano español",
+          "label_ru": "Член семьи гражданина Испании",
           "situacion": [
-            "proteccion_temporal"
+            "residencia_familiar_es"
+          ]
+        },
+        {
+          "value": "familiar_ciudadano_ue",
+          "label_es": "Familiar de ciudadano de la UE",
+          "label_ru": "Член семьи гражданина ЕС",
+          "situacion": [
+            "residencia_familiar_ue"
+          ]
+        },
+        {
+          "value": "arraigo_social",
+          "label_es": "Arraigo social",
+          "label_ru": "Социальное укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales",
+            "irregular"
+          ]
+        },
+        {
+          "value": "arraigo_sociolaboral",
+          "label_es": "Arraigo sociolaboral",
+          "label_ru": "Трудовое укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales",
+            "irregular"
+          ]
+        },
+        {
+          "value": "arraigo_socioformativo",
+          "label_es": "Arraigo socioformativo",
+          "label_ru": "Учебное укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales",
+            "irregular"
+          ]
+        },
+        {
+          "value": "arraigo_familiar",
+          "label_es": "Arraigo familiar",
+          "label_ru": "Семейное укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales",
+            "irregular"
+          ],
+          "note": "Сохранён согласно Reglamento RD 1155/2024"
+        },
+        {
+          "value": "arraigo_segunda_oportunidad",
+          "label_es": "Arraigo de segunda oportunidad",
+          "label_ru": "Укоренение «второй шанс»",
+          "situacion": [
+            "residencia_circunstancias_excepcionales",
+            "irregular"
           ]
         },
         {
@@ -249,9 +246,17 @@
           ]
         },
         {
+          "value": "proteccion_temporal",
+          "label_es": "Protección temporal",
+          "label_ru": "Временная защита",
+          "situacion": [
+            "proteccion_temporal"
+          ]
+        },
+        {
           "value": "larga_duracion",
           "label_es": "Larga duración",
-          "label_ru": "ПМЖ",
+          "label_ru": "Долгосрочный ВНЖ",
           "situacion": [
             "residencia_larga_duracion"
           ]
@@ -259,7 +264,7 @@
         {
           "value": "larga_duracion_ue",
           "label_es": "Larga duración-UE",
-          "label_ru": "ПМЖ",
+          "label_ru": "Долгосрочный ВНЖ-ЕС",
           "situacion": [
             "residencia_larga_duracion"
           ]
@@ -270,7 +275,8 @@
           "label_ru": "Другое разрешение",
           "situacion": []
         }
-      ]
+      ],
+      "description": "Детализирует конкретный тип разрешения. Справочник расширяемый. Для нелегального статуса может быть указано основание, на которое клиент планирует подавать (например, Arraigo)."
     },
     {
       "id": "estado_expediente",
