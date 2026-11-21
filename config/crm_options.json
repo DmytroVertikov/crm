@@ -426,24 +426,16 @@
           "label_es": "Obtener nacionalidad española"
         },
         {
-          "label_ru": "Воссоединить семью",
-          "label_es": "Reagrupar familiar"
-        },
-        {
-          "label_ru": "Легализоваться (выйти из нелегального статуса) (Regularizar situación",
-          "label_es": "salir de irregular)"
+          "label_ru": "Легализоваться (выйти из нелегального статуса)",
+          "label_es": "Regularizar situación (salir de irregular)"
         },
         {
           "label_ru": "Получить защиту (убежище/временная)",
           "label_es": "Obtener protección internacional / temporal"
         },
         {
-          "label_ru": "Оспорить отказ (защитить пребывание) (Recurrir denegación",
-          "label_es": "defender estancia)"
-        },
-        {
-          "label_ru": "Сохранить текущий статус (без новых процедур) (Mantener estatus actual",
-          "label_es": "sin trámite nuevo)"
+          "label_ru": "Оспорить отказ (защитить пребывание)",
+          "label_es": "Recurrir denegación (defender estancia)"
         }
       ]
     },
@@ -465,20 +457,20 @@
           "label_es": "Presentar expediente"
         },
         {
-          "label_ru": "Ожидать решения (действий не требуется) (Esperar resolución",
-          "label_es": "sin acción del cliente)"
+          "label_ru": "Ожидать решения (действий не требуется)",
+          "label_es": "Esperar resolución (sin acción del cliente)"
         },
         {
-          "label_ru": "Донести документы (по запросу) (Entregar documentos adicionales",
-          "label_es": "requerimiento)"
+          "label_ru": "Донести документы (по запросу)",
+          "label_es": "Entregar documentos adicionales (requerimiento)"
         },
         {
-          "label_ru": "Сдать отпечатки пальцев (TIE) (Cita para toma de huellas",
-          "label_es": "TIE)"
+          "label_ru": "Сдать отпечатки пальцев (TIE)",
+          "label_es": "Cita para toma de huellas (TIE)"
         },
         {
-          "label_ru": "Забрать карту (TIE) (Recoger tarjeta",
-          "label_es": "TIE)"
+          "label_ru": "Забрать карту (TIE)",
+          "label_es": "Recoger tarjeta (TIE)"
         },
         {
           "label_ru": "Подготовить апелляцию",
