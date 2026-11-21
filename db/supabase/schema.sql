@@ -13,7 +13,6 @@ create table public.clients (
   estado_expediente    text,
   tipo_documento       text,
   otro_documento       text,
-  resultado_expediente text not null default 'pendiente',
   goal                 text not null default '',
   next_note            text not null default '',
   nationality          text,                      -- ISO 3166-1 alpha-2, список в config/countries.json

@@ -392,32 +392,6 @@
           "label_ru": "Другое"
         }
       ]
-    },
-    {
-      "id": "resultado_expediente",
-      "order": 7,
-      "name_es": "Resultado del expediente",
-      "name_ru": "Результат дела",
-      "type": "enum",
-      "required": false,
-      "default": "pendiente",
-      "options": [
-        {
-          "value": "favorable",
-          "label_es": "Favorable",
-          "label_ru": "Положительный"
-        },
-        {
-          "value": "desfavorable",
-          "label_es": "Desfavorable",
-          "label_ru": "Отрицательный"
-        },
-        {
-          "value": "pendiente",
-          "label_es": "Pendiente",
-          "label_ru": "Ожидается"
-        }
-      ]
     }
   ],
   "conditional_fields": [
