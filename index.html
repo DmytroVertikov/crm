@@ -450,12 +450,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function lab(o){return o.ru+' ('+o.es+')';}
   function allowedTipo(c){return OPT.tipo.filter(function(o){return !c.situ||!o.sit.length||o.sit.indexOf(c.situ)>=0;});}
   function dlOpts(id,items){return '<datalist id="dl_'+id+'">'+items.map(function(x){return '<option value="'+esc(x)+'"></option>';}).join('')+'</datalist>';}
-  var PH='Начните вводить / Empiece a escribir';
+  var PH='Начните вводить…',NONE='— не выбрано';
   /* Поле со списком: печатаете, подсказки фильтруются. Для enum сохраняется код, свободный текст не принимается. */
   function comboF(id,label,list,cur,req,cls){
     var sel=list.filter(function(o){return o.v===cur;})[0];
-    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" list="dl_'+id+'" value="'+esc(sel?lab(sel):'')+'" placeholder="'+PH+'" autocomplete="off">'+
-      dlOpts(id,list.map(lab))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
+    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" data-enum="1" list="dl_'+id+'" value="'+esc(sel?lab(sel):'')+'" placeholder="'+PH+'" autocomplete="off">'+
+      dlOpts(id,[NONE].concat(list.map(lab)))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
   }
   function suggF(id,label,items,val,cls,ph){
     return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" list="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
@@ -591,6 +591,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(a==='exp'){if(val('newExp'))c.expiry=val('newExp');ev(c,'Срок резиденции обновлён: до '+fmt(c.expiry)+'. Дело закрыто.');c.cs=null;toast('Срок обновлён, дело закрыто');}
     render();
   }
+  /* Браузер показывает в списке только варианты, подходящие к введённому тексту.
+     Поэтому при входе в поле очищаем его (прежнее значение остаётся подсказкой) и возвращаем, если ничего не выбрано. */
+  document.addEventListener('focusin',function(e){var t=e.target;
+    if(t.dataset&&t.dataset.enum&&t.dataset.prev===undefined&&t.value){t.dataset.prev=t.value;t.placeholder=t.value;t.value='';}});
+  document.addEventListener('focusout',function(e){var t=e.target;
+    if(t.dataset&&t.dataset.enum&&t.dataset.prev!==undefined){if(t.value==='')t.value=t.dataset.prev;t.placeholder=PH;delete t.dataset.prev;}});
   document.addEventListener('change',function(e){
     var c=typeof active==='number'?byId(active):null;if(!c)return;
     var id=e.target.id;
@@ -600,7 +606,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(id==='fPhone'){c.phone=e.target.value.trim();save();renderTop();}
     function setEnum(key,list){
       var t=e.target.value.trim();
-      if(!t){c[key]=key==='resultado'?'pendiente':'';}
+      if(!t||t===NONE){c[key]=key==='resultado'?'pendiente':'';}
       else{var o=pick(list,t);if(o)c[key]=o.v;else toast('Выберите вариант из списка');}
     }
     if(id==='fExp'){var t0=e.target.value.trim();if(!t0)c.expiry=null;else{var iv=parseDMY(t0);if(iv)c.expiry=iv;else toast('Дата в формате ДД.ММ.ГГГГ');}render();}
