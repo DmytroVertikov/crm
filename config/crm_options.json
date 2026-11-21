@@ -281,14 +281,14 @@
       "required": false,
       "options": [
         {
-          "value": "en_vigor",
-          "label_es": "En vigor",
-          "label_ru": "Действителен"
+          "value": "sin_iniciar",
+          "label_es": "Pendiente de iniciar",
+          "label_ru": "Ожидает начала (не подано)"
         },
         {
-          "value": "en_tramite",
-          "label_es": "En trámite",
-          "label_ru": "В процессе рассмотрения"
+          "value": "preparacion_documentacion",
+          "label_es": "Preparación de documentación",
+          "label_ru": "Сбор и подготовка документов"
         },
         {
           "value": "pendiente_cita",
@@ -296,14 +296,39 @@
           "label_ru": "Ожидание записи на приём"
         },
         {
+          "value": "en_tramite",
+          "label_es": "En trámite",
+          "label_ru": "В процессе рассмотрения"
+        },
+        {
           "value": "requerimiento",
           "label_es": "Requerimiento",
           "label_ru": "Запрос дополнительных документов"
         },
         {
+          "value": "resuelto_pendiente_tarjeta",
+          "label_es": "Resuelto, pendiente de tarjeta (TIE)",
+          "label_ru": "Решение принято, ожидание карты (TIE)"
+        },
+        {
           "value": "recurso_presentado",
           "label_es": "Recurso presentado",
           "label_ru": "Подана жалоба"
+        },
+        {
+          "value": "en_vigor",
+          "label_es": "En vigor",
+          "label_ru": "Действителен"
+        },
+        {
+          "value": "caducado",
+          "label_es": "Caducado",
+          "label_ru": "Истёк срок"
+        },
+        {
+          "value": "archivado",
+          "label_es": "Archivado / cerrado",
+          "label_ru": "Архив / закрыто"
         }
       ]
     },
