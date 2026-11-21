@@ -10,6 +10,7 @@
 <style>
 /* Layout: one window. Client list left, tabs + client card center, contact panel right. No dialogs. */
 :root{
+  --line2:#b8c3c7;
   --bg:#f4f5f3; --surface:#ffffff; --ink:#18232b; --muted:#5d6b75; --line:#dde2e0; --sel:#e8eff1;
   --accent:#1c5566; --accent-ink:#ffffff; --accent-soft:#e1eef1;
   --crit:#b3261e; --crit-soft:#fbe7e5;
@@ -21,7 +22,7 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#11181d; --surface:#192228; --ink:#e7edf0; --muted:#98a7b0; --line:#2a373f; --sel:#203038;
+    --line2:#4a5b64; --bg:#11181d; --surface:#192228; --ink:#e7edf0; --muted:#98a7b0; --line:#2a373f; --sel:#203038;
     --accent:#6fb7c9; --accent-ink:#0c1a20; --accent-soft:#1d3640;
     --crit:#ff8c84; --crit-soft:#3a1f1d;
     --warn:#f0c36a; --warn-soft:#3a2f14;
@@ -31,7 +32,7 @@
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#11181d; --surface:#192228; --ink:#e7edf0; --muted:#98a7b0; --line:#2a373f; --sel:#203038;
+  --line2:#4a5b64; --bg:#11181d; --surface:#192228; --ink:#e7edf0; --muted:#98a7b0; --line:#2a373f; --sel:#203038;
   --accent:#6fb7c9; --accent-ink:#0c1a20; --accent-soft:#1d3640;
   --crit:#ff8c84; --crit-soft:#3a1f1d;
   --warn:#f0c36a; --warn-soft:#3a2f14;
@@ -113,6 +114,23 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .small-t{color:var(--muted);font-size:13px}
 .inline{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:flex-end}
 .inline label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.client-head{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:start;gap:10px;margin-bottom:3px}
+.client-head label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600}
+.client-head .inl{font-weight:600}
+.client-head input,.client-head select{width:100%;min-width:0}
+.client-name{font:700 22px/1.2 var(--font);letter-spacing:-.01em;background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 7px;margin-left:-7px;min-width:180px;max-width:100%}
+.client-name:hover,.client-name:focus{background:var(--bg);border-color:var(--line)}
+.phone-add{white-space:nowrap;align-self:end;width:100%;min-height:34px}
+.profile-hint{color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;margin:6px 0 4px}
+.g2 .inl{border-color:var(--line2)}
+.lower{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;align-items:start;margin-bottom:6px}
+.lower-panel{min-width:0}.lower-panel h3.sec{margin-top:0}
+.reminders-table{border-collapse:collapse;width:auto;max-width:100%;font-size:13px}
+.reminders-table tr.rem{display:table-row;padding:0}
+.reminders-table th,.reminders-table td{text-align:left;padding:3px 16px 3px 0}
+.reminders-table th{color:var(--muted);font-size:11px;font-weight:600}
+@media (max-width:1100px){.client-head{grid-template-columns:repeat(3,minmax(0,1fr))}.client-name{min-width:0}}
+@media (max-width:760px){.client-head{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin:10px 0 14px}
 .box{border:1px solid var(--line);border-radius:10px;padding:10px 14px 12px;background:var(--surface)}
 .box h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -177,7 +195,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       <input type="file" id="impFile" accept=".json,application/json" hidden>
     </span>
   </div>
-  <div class="body" id="body">
+  <div class="body noright" id="body">
     <aside class="left" aria-label="Клиенты">
       <div class="lt">
         <div class="seg" id="seg"></div>
@@ -194,7 +212,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
         <button class="btn" id="noteBtn" type="button">Добавить</button>
       </div>
     </main>
-    <aside class="right" id="right" aria-label="Контакт"></aside>
+    
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -230,7 +248,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     {id:9,num:1008,name:'Фёдорова Ксения',phone:'+34 611 000 109',expiry:off(400),cs:{type:'Продление',filed:off(-150),reqRecv:off(-100),reqDue:off(-85),answered:off(-90),result:{text:'Одобрено',date:off(-10)}},notes:[]},
     {id:10,num:1040,name:'Тихонов Павел',phone:'+34 611 000 110',expiry:off(150),cs:{type:'Первичная подача',filed:off(-30),reqRecv:off(-3),reqDue:off(9),answered:null,result:null},notes:[]}
   ];
-  clients.forEach(function(c){c.next='';c.draft='';c.goal='';c.nextNote='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.resultado='pendiente';});
+  clients.forEach(function(c){c.next='';c.draft='';c.goal='';c.nextNote='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.resultado='pendiente';c.nat='RU';c.nie='';c.phones2=[];});
   var sent={},tabs=[],active='today',filter='all',adding=false;
 
   /* Storage: this browser only. Backup file moves data between devices. */
@@ -239,7 +257,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
     clients=o.clients;sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
-    clients.forEach(function(c){c.notes=c.notes||[];c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.resultado=c.resultado||'pendiente';if(c.id>=nextId)nextId=c.id+1;});
+    clients.forEach(function(c){c.notes=c.notes||[];c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.resultado=c.resultado||'pendiente';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
     tabs=[];active='today';filter='all';
   }
   function save(){try{localStorage.setItem(KEY,snapshot());storeOk=true;savedAt=new Date();}catch(e){storeOk=false;}remoteSoon();}
@@ -259,7 +277,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
         return opt.method&&opt.method!=='GET'?null:r.json();});
   }
   function toRows(c){
-    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,resultado_expediente:c.resultado||'pendiente',goal:c.goal||'',next_note:c.nextNote||''};
+    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,resultado_expediente:c.resultado||'pendiente',goal:c.goal||'',next_note:c.nextNote||'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
     var k=c.cs?{client_id:c.id,type:c.cs.type,filed:c.cs.filed,req_received:c.cs.reqRecv||null,req_due:c.cs.reqDue||null,
       answered:c.cs.answered||null,result_text:c.cs.result?c.cs.result.text:null,result_date:c.cs.result?c.cs.result.date:null}:null;
     var n=c.notes.map(function(x){return {client_id:c.id,kind:x.t,text:x.text,date:x.date};});
@@ -268,7 +286,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function fromRemote(cl,ks,ns){
     var out=cl.map(function(r){
       var k=ks.filter(function(z){return z.client_id===r.id;})[0];
-      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,next:r.next_step||'',draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',resultado:r.resultado_expediente||'pendiente',goal:r.goal||'',nextNote:r.next_note||'',
+      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,next:r.next_step||'',draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',resultado:r.resultado_expediente||'pendiente',goal:r.goal||'',nextNote:r.next_note||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
         cs:k?{type:k.type,filed:k.filed,reqRecv:k.req_received,reqDue:k.req_due,answered:k.answered,
           result:k.result_text?{text:k.result_text,date:k.result_date}:null}:null,
         notes:ns.filter(function(z){return z.client_id===r.id;}).sort(function(a,b){return a.id-b.id;})
@@ -427,28 +445,69 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   /* Center: client card */
   function stp(title,date,done,now,extra){return '<li class="step '+(done?'done':now?'now':'')+'"><span class="dot">'+(done?'✓':'')+'</span><div><b>'+esc(title)+'</b><span class="small-t">'+(date?fmt(date):'ещё не было')+'</span>'+extra+'</div></li>';}
   /* Опции карточки: копия config/crm_options.json (v2.1). Править в JSON и пересобирать сюда. */
-  var OPT={"situ":[{"v":"estancia_turistica","ru":"Туристическое пребывание","es":"Estancia turística"},{"v":"estancia_estudios","ru":"Студенческое пребывание","es":"Estancia por estudios"},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal"},{"v":"solicitud_proteccion_internacional","ru":"Запрос международной защиты","es":"Solicitud de protección internacional"},{"v":"proteccion_internacional_concedida","ru":"Международная защита получена","es":"Protección internacional concedida"},{"v":"residencia_temporal","ru":"Временный ВНЖ","es":"Residencia temporal"},{"v":"residencia_larga_duracion","ru":"ПМЖ","es":"Residencia de larga duración"},{"v":"residencia_familiar_ue","ru":"ВНЖ члена семьи гражданина ЕС","es":"Residencia de familiar de ciudadano UE"},{"v":"residencia_familiar_es","ru":"ВНЖ члена семьи гражданина Испании","es":"Residencia de familiar de ciudadano español"},{"v":"residencia_circunstancias_excepcionales","ru":"ВНЖ по исключительным обстоятельствам","es":"Residencia por circunstancias excepcionales"},{"v":"irregular","ru":"Нелегальное пребывание","es":"Irregular"},{"v":"otra","ru":"Другое","es":"Otra situación"}],"tipo":[{"v":"no_lucrativa","ru":"ВНЖ без права на работу","es":"No lucrativa","sit":["residencia_temporal"]},{"v":"cuenta_ajena","ru":"Работа по найму","es":"Cuenta ajena","sit":["residencia_temporal"]},{"v":"cuenta_propia","ru":"Самозанятость","es":"Cuenta propia","sit":["residencia_temporal"]},{"v":"trabajo_temporada","ru":"Сезонная работа","es":"Trabajo de temporada","sit":["residencia_temporal"],"note":"Сезонность, макс. 9 месяцев/год, возможность повторного найма"},{"v":"reagrupacion_familiar","ru":"Воссоединение семьи","es":"Reagrupación familiar","sit":["residencia_temporal"]},{"v":"familiar_ciudadano_es","ru":"Член семьи гражданина Испании","es":"Familiar de ciudadano español","sit":["residencia_familiar_es"]},{"v":"familiar_ciudadano_ue","ru":"Член семьи гражданина ЕС","es":"Familiar de ciudadano de la UE","sit":["residencia_familiar_ue"]},{"v":"arraigo_social","ru":"Социальное укоренение","es":"Arraigo social","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_sociolaboral","ru":"Трудовое укоренение","es":"Arraigo sociolaboral","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_socioformativo","ru":"Учебное укоренение","es":"Arraigo socioformativo","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_familiar","ru":"Семейное укоренение","es":"Arraigo familiar","sit":["residencia_circunstancias_excepcionales"],"note":"Сохранён согласно Reglamento RD 1155/2024"},{"v":"arraigo_segunda_oportunidad","ru":"Укоренение «второй шанс»","es":"Arraigo de segunda oportunidad","sit":["residencia_circunstancias_excepcionales"]},{"v":"teletrabajo_internacional","ru":"Международный телеработник","es":"Autorización de residencia para teletrabajo de carácter internacional","sit":["residencia_temporal"],"note":"Специальный режим Ley 14/2013"},{"v":"profesional_altamente_cualificado","ru":"Высококвалифицированный специалист","es":"Profesional altamente cualificado","sit":["residencia_temporal"]},{"v":"tarjeta_azul_ue","ru":"Голубая карта ЕС","es":"Tarjeta azul-UE","sit":["residencia_temporal"]},{"v":"emprendedores","ru":"Предприниматели","es":"Emprendedores","sit":["residencia_temporal"]},{"v":"investigadores","ru":"Исследователи","es":"Investigadores","sit":["residencia_temporal"]},{"v":"traslado_intraempresarial","ru":"Внутрикорпоративный перевод","es":"Traslado intraempresarial","sit":["residencia_temporal"]},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal","sit":["proteccion_temporal"]},{"v":"razones_humanitarias","ru":"Гуманитарные причины","es":"Razones humanitarias","sit":["residencia_circunstancias_excepcionales"]},{"v":"larga_duracion","ru":"ПМЖ","es":"Larga duración","sit":["residencia_larga_duracion"]},{"v":"larga_duracion_ue","ru":"ПМЖ","es":"Larga duración-UE","sit":["residencia_larga_duracion"]},{"v":"otra","ru":"Другое разрешение","es":"Otra autorización","sit":[]}],"estado":[{"v":"en_vigor","ru":"Действителен","es":"En vigor"},{"v":"en_tramite","ru":"В процессе рассмотрения","es":"En trámite"},{"v":"pendiente_cita","ru":"Ожидание записи на приём","es":"Pendiente de cita"},{"v":"requerimiento","ru":"Запрос дополнительных документов","es":"Requerimiento"},{"v":"recurso_presentado","ru":"Подана жалоба","es":"Recurso presentado"}],"doc":[{"v":"tie_general","ru":"TIE (карта иностранца)","es":"TIE (tarjeta de identidad de extranjero)"},{"v":"tie_brexit","ru":"Карта по Соглашению о выходе (Brexit)","es":"Tarjeta por Acuerdo de Retirada (Brexit)"},{"v":"certificado_registro_ue","ru":"Сертификат регистрации гражданина ЕС","es":"Certificado de registro de ciudadano de la UE"},{"v":"resguardo_solicitud","ru":"Подтверждение подачи заявления","es":"Resguardo de solicitud"},{"v":"resolucion_favorable","ru":"Положительное решение","es":"Resolución favorable"},{"v":"autorizacion_regreso","ru":"Разрешение на возвращение","es":"Autorización de regreso"},{"v":"pasaporte","ru":"Паспорт","es":"Pasaporte"},{"v":"visado","ru":"Виза","es":"Visado"},{"v":"doc_solicitante_proteccion","ru":"Документ заявителя на международную защиту","es":"Documento de solicitante de protección internacional"},{"v":"cedula_inscripcion","ru":"Удостоверение регистрации (для лиц без документов)","es":"Cédula de inscripción"},{"v":"otro","ru":"Другое","es":"Otro"}],"res":[{"v":"favorable","ru":"Положительный","es":"Favorable"},{"v":"desfavorable","ru":"Отрицательный","es":"Desfavorable"},{"v":"pendiente","ru":"Ожидается","es":"Pendiente"}],"name":{"situ":"Административный статус (Situación administrativa)","tipo":"Основание / тип разрешения (Tipo de autorización / Fundamento)","estado":"Стадия рассмотрения дела (Estado del expediente)","doc":"Тип подтверждающего документа (Tipo de documento acreditativo)","res":"Результат дела (Resultado del expediente)"}};
+  var OPT={"situ":[{"v":"estancia_turistica","ru":"Туристическое пребывание","es":"Estancia turística"},{"v":"estancia_estudios","ru":"Студенческое пребывание","es":"Estancia por estudios"},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal"},{"v":"solicitud_proteccion_internacional","ru":"Запрос международной защиты","es":"Solicitud de protección internacional"},{"v":"proteccion_internacional_concedida","ru":"Международная защита получена","es":"Protección internacional concedida"},{"v":"residencia_temporal","ru":"Временный ВНЖ","es":"Residencia temporal"},{"v":"residencia_larga_duracion","ru":"ПМЖ","es":"Residencia de larga duración"},{"v":"residencia_familiar_ue","ru":"ВНЖ члена семьи гражданина ЕС","es":"Residencia de familiar de ciudadano UE"},{"v":"residencia_familiar_es","ru":"ВНЖ члена семьи гражданина Испании","es":"Residencia de familiar de ciudadano español"},{"v":"residencia_circunstancias_excepcionales","ru":"ВНЖ по исключительным обстоятельствам","es":"Residencia por circunstancias excepcionales"},{"v":"irregular","ru":"Нелегальное пребывание","es":"Irregular"},{"v":"otra","ru":"Другое","es":"Otra situación"}],"tipo":[{"v":"no_lucrativa","ru":"ВНЖ без права на работу","es":"No lucrativa","sit":["residencia_temporal"]},{"v":"cuenta_ajena","ru":"Работа по найму","es":"Cuenta ajena","sit":["residencia_temporal"]},{"v":"cuenta_propia","ru":"Самозанятость","es":"Cuenta propia","sit":["residencia_temporal"]},{"v":"trabajo_temporada","ru":"Сезонная работа","es":"Trabajo de temporada","sit":["residencia_temporal"],"note":"Сезонность, макс. 9 месяцев/год, возможность повторного найма"},{"v":"reagrupacion_familiar","ru":"Воссоединение семьи","es":"Reagrupación familiar","sit":["residencia_temporal"]},{"v":"familiar_ciudadano_es","ru":"Член семьи гражданина Испании","es":"Familiar de ciudadano español","sit":["residencia_familiar_es"]},{"v":"familiar_ciudadano_ue","ru":"Член семьи гражданина ЕС","es":"Familiar de ciudadano de la UE","sit":["residencia_familiar_ue"]},{"v":"arraigo_social","ru":"Социальное укоренение","es":"Arraigo social","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_sociolaboral","ru":"Трудовое укоренение","es":"Arraigo sociolaboral","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_socioformativo","ru":"Учебное укоренение","es":"Arraigo socioformativo","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_familiar","ru":"Семейное укоренение","es":"Arraigo familiar","sit":["residencia_circunstancias_excepcionales"],"note":"Сохранён согласно Reglamento RD 1155/2024"},{"v":"arraigo_segunda_oportunidad","ru":"Укоренение «второй шанс»","es":"Arraigo de segunda oportunidad","sit":["residencia_circunstancias_excepcionales"]},{"v":"teletrabajo_internacional","ru":"Международный телеработник","es":"Autorización de residencia para teletrabajo de carácter internacional","sit":["residencia_temporal"],"note":"Специальный режим Ley 14/2013"},{"v":"profesional_altamente_cualificado","ru":"Высококвалифицированный специалист","es":"Profesional altamente cualificado","sit":["residencia_temporal"]},{"v":"tarjeta_azul_ue","ru":"Голубая карта ЕС","es":"Tarjeta azul-UE","sit":["residencia_temporal"]},{"v":"emprendedores","ru":"Предприниматели","es":"Emprendedores","sit":["residencia_temporal"]},{"v":"investigadores","ru":"Исследователи","es":"Investigadores","sit":["residencia_temporal"]},{"v":"traslado_intraempresarial","ru":"Внутрикорпоративный перевод","es":"Traslado intraempresarial","sit":["residencia_temporal"]},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal","sit":["proteccion_temporal"]},{"v":"razones_humanitarias","ru":"Гуманитарные причины","es":"Razones humanitarias","sit":["residencia_circunstancias_excepcionales"]},{"v":"larga_duracion","ru":"ПМЖ","es":"Larga duración","sit":["residencia_larga_duracion"]},{"v":"larga_duracion_ue","ru":"ПМЖ","es":"Larga duración-UE","sit":["residencia_larga_duracion"]},{"v":"otra","ru":"Другое разрешение","es":"Otra autorización","sit":[]}],"estado":[{"v":"en_vigor","ru":"Действителен","es":"En vigor"},{"v":"en_tramite","ru":"В процессе рассмотрения","es":"En trámite"},{"v":"pendiente_cita","ru":"Ожидание записи на приём","es":"Pendiente de cita"},{"v":"requerimiento","ru":"Запрос дополнительных документов","es":"Requerimiento"},{"v":"recurso_presentado","ru":"Подана жалоба","es":"Recurso presentado"}],"doc":[{"v":"tie_general","ru":"TIE (карта иностранца)","es":"TIE (tarjeta de identidad de extranjero)"},{"v":"tie_brexit","ru":"Карта по Соглашению о выходе (Brexit)","es":"Tarjeta por Acuerdo de Retirada (Brexit)"},{"v":"certificado_registro_ue","ru":"Сертификат регистрации гражданина ЕС","es":"Certificado de registro de ciudadano de la UE"},{"v":"resguardo_solicitud","ru":"Подтверждение подачи заявления","es":"Resguardo de solicitud"},{"v":"resolucion_favorable","ru":"Положительное решение","es":"Resolución favorable"},{"v":"autorizacion_regreso","ru":"Разрешение на возвращение","es":"Autorización de regreso"},{"v":"pasaporte","ru":"Паспорт","es":"Pasaporte"},{"v":"visado","ru":"Виза","es":"Visado"},{"v":"doc_solicitante_proteccion","ru":"Документ заявителя на международную защиту","es":"Documento de solicitante de protección internacional"},{"v":"cedula_inscripcion","ru":"Удостоверение регистрации (для лиц без документов)","es":"Cédula de inscripción"},{"v":"otro","ru":"Другое","es":"Otro"}],"res":[{"v":"favorable","ru":"Положительный","es":"Favorable"},{"v":"desfavorable","ru":"Отрицательный","es":"Desfavorable"},{"v":"pendiente","ru":"Ожидается","es":"Pendiente"}],"name":{"situ":"Административный статус (Situación administrativa)","tipo":"Основание / тип разрешения (Tipo de autorización / Fundamento)","estado":"Стадия рассмотрения дела (Estado del expediente)","doc":"Тип подтверждающего документа (Tipo de documento acreditativo)","res":"Результат дела (Resultado del expediente)"},"goal":["Получить первый ВНЖ (Obtener residencia inicial)","Продлить ВНЖ (Renovar residencia)","Получить долгосрочный ВНЖ (Obtener residencia de larga duración)","Получить гражданство Испании (Obtener nacionalidad española)","Воссоединить семью (Reagrupar familiar)","Легализоваться (выйти из нелегального статуса) (Regularizar situación (salir de irregular))","Получить защиту (убежище/временная) (Obtener protección internacional / temporal)","Оспорить отказ (защитить пребывание) (Recurrir denegación (defender estancia))","Сохранить текущий статус (без новых процедур) (Mantener estatus actual (sin trámite nuevo))"],"next":["Собрать документы (Recopilar documentación)","Записаться на приём (Solicitar cita previa)","Подать дело (Presentar expediente)","Ожидать решения (действий не требуется) (Esperar resolución (sin acción del cliente))","Донести документы (по запросу) (Entregar documentos adicionales (requerimiento))","Сдать отпечатки пальцев (TIE) (Cita para toma de huellas (TIE))","Забрать карту (TIE) (Recoger tarjeta (TIE))","Подготовить апелляцию (Preparar recurso de alzada)"]};
+  var COUNTRIES=[["RU","Россия (Rusia)"],["UA","Украина (Ucrania)"],["AU","Австралия (Australia)"],["AT","Австрия (Austria)"],["AZ","Азербайджан (Azerbaiyán)"],["AX","Аландские о-ва (Islas Aland)"],["AL","Албания (Albania)"],["DZ","Алжир (Argelia)"],["AS","Американское Самоа (Samoa Americana)"],["AI","Ангилья (Anguila)"],["AO","Ангола (Angola)"],["AD","Андорра (Andorra)"],["AQ","Антарктида (Antártida)"],["AG","Антигуа и Барбуда (Antigua y Barbuda)"],["AR","Аргентина (Argentina)"],["AM","Армения (Armenia)"],["AW","Аруба (Aruba)"],["AF","Афганистан (Afganistán)"],["BS","Багамы (Bahamas)"],["BD","Бангладеш (Bangladés)"],["BB","Барбадос (Barbados)"],["BH","Бахрейн (Baréin)"],["BY","Беларусь (Bielorrusia)"],["BZ","Белиз (Belice)"],["BE","Бельгия (Bélgica)"],["BJ","Бенин (Benín)"],["BM","Бермудские о-ва (Bermudas)"],["BG","Болгария (Bulgaria)"],["BO","Боливия (Bolivia)"],["BQ","Бонэйр, Синт-Эстатиус и Саба (Caribe neerlandés)"],["BA","Босния и Герцеговина (Bosnia y Herzegovina)"],["BW","Ботсвана (Botsuana)"],["BR","Бразилия (Brasil)"],["BN","Бруней (Brunéi)"],["BF","Буркина-Фасо (Burkina Faso)"],["BI","Бурунди (Burundi)"],["BT","Бутан (Bután)"],["VU","Вануату (Vanuatu)"],["VA","Ватикан (Ciudad del Vaticano)"],["GB","Великобритания (Reino Unido)"],["HU","Венгрия (Hungría)"],["VE","Венесуэла (Venezuela)"],["VG","Виргинские о-ва (Великобритания) (Islas Vírgenes Británicas)"],["VI","Виргинские о-ва (США) (Islas Vírgenes de EE. UU.)"],["UM","Внешние малые о-ва (США) (Islas menores alejadas de EE. UU.)"],["TL","Восточный Тимор (Timor-Leste)"],["VN","Вьетнам (Vietnam)"],["GA","Габон (Gabón)"],["HT","Гаити (Haití)"],["GY","Гайана (Guyana)"],["GM","Гамбия (Gambia)"],["GH","Гана (Ghana)"],["GP","Гваделупа (Guadalupe)"],["GT","Гватемала (Guatemala)"],["GN","Гвинея (Guinea)"],["GW","Гвинея-Бисау (Guinea-Bisáu)"],["DE","Германия (Alemania)"],["GG","Гернси (Guernesey)"],["GI","Гибралтар (Gibraltar)"],["HN","Гондурас (Honduras)"],["HK","Гонконг (Hong Kong)"],["GD","Гренада (Granada)"],["GL","Гренландия (Groenlandia)"],["GR","Греция (Grecia)"],["GE","Грузия (Georgia)"],["GU","Гуам (Guam)"],["DK","Дания (Dinamarca)"],["JE","Джерси (Jersey)"],["DJ","Джибути (Yibuti)"],["DM","Доминика (Dominica)"],["DO","Доминиканская Республика (República Dominicana)"],["EG","Египет (Egipto)"],["ZM","Замбия (Zambia)"],["EH","Западная Сахара (Sáhara Occidental)"],["ZW","Зимбабве (Zimbabue)"],["IL","Израиль (Israel)"],["IN","Индия (India)"],["ID","Индонезия (Indonesia)"],["JO","Иордания (Jordania)"],["IQ","Ирак (Irak)"],["IR","Иран (Irán)"],["IE","Ирландия (Irlanda)"],["IS","Исландия (Islandia)"],["ES","Испания (España)"],["IT","Италия (Italia)"],["YE","Йемен (Yemen)"],["CV","Кабо-Верде (Cabo Verde)"],["KZ","Казахстан (Kazajistán)"],["KH","Камбоджа (Camboya)"],["CM","Камерун (Camerún)"],["CA","Канада (Canadá)"],["QA","Катар (Catar)"],["KE","Кения (Kenia)"],["CY","Кипр (Chipre)"],["KG","Киргизия (Kirguistán)"],["KI","Кирибати (Kiribati)"],["CN","Китай (China)"],["KP","КНДР (Corea del Norte)"],["CC","Кокосовые о-ва (Islas Cocos)"],["CO","Колумбия (Colombia)"],["KM","Коморы (Comoras)"],["CG","Конго - Браззавиль (Congo)"],["CD","Конго - Киншаса (República Democrática del Congo)"],["CR","Коста-Рика (Costa Rica)"],["CI","Кот-д’Ивуар (Côte d’Ivoire)"],["CU","Куба (Cuba)"],["KW","Кувейт (Kuwait)"],["CW","Кюрасао (Curazao)"],["LA","Лаос (Laos)"],["LV","Латвия (Letonia)"],["LS","Лесото (Lesoto)"],["LR","Либерия (Liberia)"],["LB","Ливан (Líbano)"],["LY","Ливия (Libia)"],["LT","Литва (Lituania)"],["LI","Лихтенштейн (Liechtenstein)"],["LU","Люксембург (Luxemburgo)"],["MU","Маврикий (Mauricio)"],["MR","Мавритания (Mauritania)"],["MG","Мадагаскар (Madagascar)"],["YT","Майотта (Mayotte)"],["MO","Макао (Macao)"],["MW","Малави (Malaui)"],["MY","Малайзия (Malasia)"],["ML","Мали (Mali)"],["MV","Мальдивы (Maldivas)"],["MT","Мальта (Malta)"],["MA","Марокко (Marruecos)"],["MQ","Мартиника (Martinica)"],["MH","Маршалловы о-ва (Islas Marshall)"],["MX","Мексика (México)"],["MZ","Мозамбик (Mozambique)"],["MD","Молдова (Moldavia)"],["MC","Монако (Mónaco)"],["MN","Монголия (Mongolia)"],["MS","Монтсеррат (Montserrat)"],["MM","Мьянма (Бирма) (Myanmar (Birmania))"],["NA","Намибия (Namibia)"],["NR","Науру (Nauru)"],["NP","Непал (Nepal)"],["NE","Нигер (Níger)"],["NG","Нигерия (Nigeria)"],["NL","Нидерланды (Países Bajos)"],["NI","Никарагуа (Nicaragua)"],["NU","Ниуэ (Niue)"],["NZ","Новая Зеландия (Nueva Zelanda)"],["NC","Новая Каледония (Nueva Caledonia)"],["NO","Норвегия (Noruega)"],["BV","о-в Буве (Isla Bouvet)"],["IM","о-в Мэн (Isla de Man)"],["NF","о-в Норфолк (Isla Norfolk)"],["CX","о-в Рождества (Isla de Navidad)"],["SH","о-в Св. Елены (Santa Elena)"],["CK","о-ва Кука (Islas Cook)"],["PN","о-ва Питкэрн (Islas Pitcairn)"],["AE","ОАЭ (Emiratos Árabes Unidos)"],["OM","Оман (Omán)"],["PK","Пакистан (Pakistán)"],["PW","Палау (Palaos)"],["PS","Палестина (Palestina)"],["PA","Панама (Panamá)"],["PG","Папуа — Новая Гвинея (Papúa Nueva Guinea)"],["PY","Парагвай (Paraguay)"],["PE","Перу (Perú)"],["PL","Польша (Polonia)"],["PT","Португалия (Portugal)"],["PR","Пуэрто-Рико (Puerto Rico)"],["KR","Республика Корея (Corea del Sur)"],["RE","Реюньон (Reunión)"],["RW","Руанда (Ruanda)"],["RO","Румыния (Rumanía)"],["SV","Сальвадор (El Salvador)"],["WS","Самоа (Samoa)"],["SM","Сан-Марино (San Marino)"],["ST","Сан-Томе и Принсипи (Santo Tomé y Príncipe)"],["SA","Саудовская Аравия (Arabia Saudí)"],["MK","Северная Македония (Macedonia del Norte)"],["MP","Северные Марианские о-ва (Islas Marianas del Norte)"],["SC","Сейшельские о-ва (Seychelles)"],["BL","Сен-Бартелеми (San Bartolomé)"],["MF","Сен-Мартен (San Martín)"],["PM","Сен-Пьер и Микелон (San Pedro y Miquelón)"],["SN","Сенегал (Senegal)"],["VC","Сент-Винсент и Гренадины (San Vicente y las Granadinas)"],["KN","Сент-Китс и Невис (San Cristóbal y Nieves)"],["LC","Сент-Люсия (Santa Lucía)"],["RS","Сербия (Serbia)"],["SG","Сингапур (Singapur)"],["SX","Синт-Мартен (Sint Maarten)"],["SY","Сирия (Siria)"],["SK","Словакия (Eslovaquia)"],["SI","Словения (Eslovenia)"],["US","Соединенные Штаты (Estados Unidos)"],["SB","Соломоновы о-ва (Islas Salomón)"],["SO","Сомали (Somalia)"],["SD","Судан (Sudán)"],["SR","Суринам (Surinam)"],["SL","Сьерра-Леоне (Sierra Leona)"],["TJ","Таджикистан (Tayikistán)"],["TH","Таиланд (Tailandia)"],["TW","Тайвань (Taiwán)"],["TZ","Танзания (Tanzania)"],["TC","Тёркс и Кайкос (Islas Turcas y Caicos)"],["TG","Того (Togo)"],["TK","Токелау (Tokelau)"],["TO","Тонга (Tonga)"],["TT","Тринидад и Тобаго (Trinidad y Tobago)"],["TV","Тувалу (Tuvalu)"],["TN","Тунис (Túnez)"],["TM","Туркменистан (Turkmenistán)"],["TR","Турция (Turquía)"],["UG","Уганда (Uganda)"],["UZ","Узбекистан (Uzbekistán)"],["WF","Уоллис и Футуна (Wallis y Futuna)"],["UY","Уругвай (Uruguay)"],["FO","Фарерские о-ва (Islas Feroe)"],["FJ","Фиджи (Fiyi)"],["PH","Филиппины (Filipinas)"],["FI","Финляндия (Finlandia)"],["FK","Фолклендские (Мальвинские) о-ва (Islas Malvinas (Islas Falkland))"],["FR","Франция (Francia)"],["GF","Французская Гвиана (Guayana Francesa)"],["PF","Французская Полинезия (Polinesia Francesa)"],["TF","Французские Южные территории (Territorios Australes Franceses)"],["HR","Хорватия (Croacia)"],["CF","Центрально-Африканская Республика (República Centroafricana)"],["TD","Чад (Chad)"],["ME","Черногория (Montenegro)"],["CZ","Чехия (Chequia)"],["CL","Чили (Chile)"],["CH","Швейцария (Suiza)"],["SE","Швеция (Suecia)"],["SJ","Шпицберген и Ян-Майен (Svalbard y Jan Mayen)"],["LK","Шри-Ланка (Sri Lanka)"],["EC","Эквадор (Ecuador)"],["GQ","Экваториальная Гвинея (Guinea Ecuatorial)"],["ER","Эритрея (Eritrea)"],["SZ","Эсватини (Esuatini)"],["EE","Эстония (Estonia)"],["ET","Эфиопия (Etiopía)"],["ZA","Южно-Африканская Республика (Sudáfrica)"],["SS","Южный Судан (Sudán del Sur)"],["JM","Ямайка (Jamaica)"],["JP","Япония (Japón)"]];
   function lab(o){return o.ru+' ('+o.es+')';}
   function allowedTipo(c){return OPT.tipo.filter(function(o){return !c.situ||!o.sit.length||o.sit.indexOf(c.situ)>=0;});}
-  function selF(id,label,list,cur,req,cls){
+  function dlOpts(id,items){return '<datalist id="dl_'+id+'">'+items.map(function(x){return '<option value="'+esc(x)+'"></option>';}).join('')+'</datalist>';}
+  var PH='Начните вводить / Empiece a escribir';
+  /* Поле со списком: печатаете, подсказки фильтруются. Для enum сохраняется код, свободный текст не принимается. */
+  function comboF(id,label,list,cur,req,cls){
     var sel=list.filter(function(o){return o.v===cur;})[0];
-    return '<label class="'+(cls||'')+'">'+label+(req?' *':'')+'<select class="inl" id="'+id+'" title="'+esc(sel?lab(sel):'')+'"><option value="">Выберите (Seleccione)</option>'+
-      list.map(function(o){return '<option value="'+o.v+'"'+(o.v===cur?' selected':'')+'>'+esc(lab(o))+'</option>';}).join('')+'</select>'+
-      (sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
+    return '<label class="'+(cls||'')+'">'+label+(req?' *':'')+'<input class="inl" id="'+id+'" list="dl_'+id+'" value="'+esc(sel?lab(sel):'')+'" placeholder="'+PH+'" autocomplete="off">'+
+      dlOpts(id,list.map(lab))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
+  }
+  function suggF(id,label,items,val,cls,ph){
+    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" list="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
   }
   function txtF(id,label,val,ph,cls){return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"></label>';}
+  function pick(list,txt){
+    var t=(txt||'').trim().toLowerCase();if(!t)return null;
+    var ex=list.filter(function(o){return lab(o).toLowerCase()===t||o.ru.toLowerCase()===t||o.es.toLowerCase()===t;});
+    if(ex.length===1)return ex[0];
+    var p=list.filter(function(o){return lab(o).toLowerCase().indexOf(t)===0;});
+    return p.length===1?p[0]:null;
+  }
+  function nieCheck(v){
+    v=(v||'').toUpperCase().replace(/[\s-]/g,'');if(!v)return '';
+    var m=/^([XYZ])(\d{7})([A-Z])$/.exec(v);
+    if(!m)return 'Формат NIE: буква X, Y или Z, 7 цифр и контрольная буква, например X1234567L.';
+    var L='TRWAGMYFPDXBNJZSQVHLCKE'.charAt(+({X:'0',Y:'1',Z:'2'}[m[1]]+m[2])%23);
+    return L===m[3]?'':'Контрольная буква не сходится: для этих цифр она должна быть '+L+'. Проверьте номер.';
+  }
+  function parseDMY(t){var m=/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/.exec((t||'').trim());if(!m)return undefined;
+    var d=new Date(+m[3],+m[2]-1,+m[1]);return d.getMonth()===+m[2]-1&&d.getDate()===+m[1]?iso(d):undefined;}
+  function headHtml(c){
+    var h='<div class="client-head"><label>Фамилия и имя<input class="client-name" id="fName" value="'+esc(c.name)+'" aria-label="Фамилия и имя"></label>';
+    h+='<label>Гражданство<select class="inl" id="fNat"><option value="">Выберите страну</option>'+COUNTRIES.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===c.nat?' selected':'')+'>'+esc(x[1])+'</option>';}).join('')+'</select></label>';
+    h+='<label class="client-nie">NIE<input class="inl" id="fNie" value="'+esc(c.nie)+'" placeholder="X1234567L" maxlength="10" autocomplete="off"></label>';
+    h+='<label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label>';
+    c.phones2.forEach(function(p,i){h+='<label>Телефон '+(i+2)+'<input class="inl" id="fPh2_'+i+'" value="'+esc(p)+'" placeholder="Оставьте пустым, чтобы удалить"></label>';});
+    h+='<button class="btn small ghost phone-add" type="button" data-act="addphone">+ Другой телефон</button></div>';
+    var w=nieCheck(c.nie);if(w)h+='<div class="profile-hint" id="nieHelp">'+esc(w)+'</div>';
+    return h;
+  }
+  function remindersHtml(c){
+    var h='<h3 class="sec">Напоминания о сроке (Avisos de vencimiento)</h3>';
+    if(!c.expiry)return h+'<div class="small-t">Укажите срок действия, и система сама рассчитает напоминания.</div>';
+    var e=diff(c.expiry),cur=-1;[120,90,60,30].forEach(function(t,i){if(e<=t)cur=i;});
+    h+='<table class="reminders-table"><thead><tr><th>Срок</th><th>Дата</th></tr></thead><tbody>'+[120,90,60,30].map(function(t,i){
+      var d=iso(new Date(parse(c.expiry).getTime()-t*DAY)),past=diff(d)<0&&i!==cur;
+      return '<tr class="rem'+(past?' past':'')+(i===cur?' cur':'')+'"><td>За '+t+' дней</td><td>'+fmt(d)+'</td></tr>';}).join('')+'</tbody></table>';
+    return h+'<div class="small-t" style="margin-top:6px">Напоминания клиенту создаются в эти даты, если дело продления не открыто.</div>';
+  }
   function cardFields(c,dv){
     var h='<div class="two"><section class="box"><h4>Что делаем сейчас</h4><div class="g2">';
-    h+=txtF('fGoal','Главная цель (Objetivo principal)',c.goal,'Начните вводить / Empiece a escribir');
-    h+=selF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
-    h+=selF('fRes',OPT.name.res,OPT.res,c.resultado,true);
-    h+=txtF('nextIn','Следующий шаг (Próximo paso / acción inmediata)',c.next,dv?dv.t:'Начните вводить / Empiece a escribir');
+    h+=suggF('fGoal','Главная цель (Objetivo principal)',OPT.goal,c.goal);
+    h+=comboF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
+    h+=comboF('fRes',OPT.name.res,OPT.res,c.resultado,true);
+    h+=suggF('nextIn','Следующий шаг, действие (Próximo paso / acción inmediata)',OPT.next,c.next,'',dv?dv.t:PH);
     h+=txtF('fNextNote','Комментарий к следующему шагу (Comentario sobre el próximo paso)',c.nextNote,'Добавьте подробности к действию','full');
     h+='</div></section><section class="box"><h4>Текущий статус</h4><div class="g2">';
-    h+=selF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
-    h+=selF('fTipo',OPT.name.tipo,allowedTipo(c),c.tipo,true);
-    h+=selF('fDoc',OPT.name.doc,OPT.doc,c.doc,true);
-    h+='<label>Срок действия / дата истечения (Vigencia / Fecha de caducidad)<input class="inl" type="date" id="fExp" value="'+esc(c.expiry||'')+'"></label>';
+    h+=comboF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
+    h+=comboF('fTipo',OPT.name.tipo,allowedTipo(c),c.tipo,true);
+    h+=comboF('fDoc',OPT.name.doc,OPT.doc,c.doc,true);
+    h+='<label>Срок действия / дата истечения (Vigencia / Fecha de caducidad)<input class="inl" type="text" id="fExp" inputmode="numeric" placeholder="ДД.ММ.ГГГГ" value="'+(c.expiry?fmt(c.expiry):'')+'"></label>';
     if(c.doc==='otro')h+=txtF('fOtro','Другой документ (Otro documento) *',c.otroDoc,'Укажите документ / Indique el documento','full');
     h+='</div></section></div>';
     return h;
@@ -456,12 +515,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 
   function renderClient(c){
     var k=c.cs,st=status(c),s=stage(c),dv=derived(c),h='';
-    h+='<h1>'+esc(c.name)+'</h1><p class="sub">Дело №'+c.num+(k?' · '+esc(k.type):' · нет открытого дела')+'</p>';
+    h+=headHtml(c);
     h+='<div class="meta"><span class="pill '+st.k+'">'+esc(st.t)+'</span>';
     if(k)h+='<label>Тип дела <select class="inl" id="cType">'+TYPES.map(function(t){return '<option'+(t===k.type?' selected':'')+'>'+t+'</option>';}).join('')+'</select></label>';
     h+='</div>';
     h+=cardFields(c,dv);
-    h+='<h3 class="sec">Дело</h3>';
+    h+='<div class="lower"><div class="card lower-panel">'+remindersHtml(c)+'</div><div class="card lower-panel"><h3 class="sec">Дело</h3>';
     if(!k){
       h+='<div class="inline"><label>Открыть дело<select class="inl" id="oType">'+TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></label><label>Дата подачи<input class="inl" type="date" id="oFiled" value="'+iso(TODAY)+'"></label><button class="btn small" data-act="open" type="button">Открыть дело</button></div>';
     }else{
@@ -475,6 +534,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       h+='</ol>';
       if(k.result&&k.result.text==='Одобрено')h+='<div class="inline"><label>Новый срок резиденции<input class="inl" type="date" id="newExp" value="'+(c.expiry||'')+'"></label><button class="btn small" data-act="exp" type="button">Обновить срок и закрыть дело</button></div>';
     }
+    h+='</div></div>';
     var rn=notes().filter(function(x){return x.cid===c.id&&x.kind==='client';})[0];
     if(rn){h+='<h3 class="sec">Напоминание клиенту</h3>'+feedCard(rn);}
     h+='<h3 class="sec">История и примечания</h3>';
@@ -485,23 +545,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   }
 
   /* Right panel */
-  function renderRight(){
-    var b=$('body'),r=$('right');
-    if(active==='today'){b.classList.add('noright');r.style.display='none';return;}
-    b.classList.remove('noright');r.style.display='';
-    var c=byId(active),e=c.expiry?diff(c.expiry):null;
-    var h='<div class="blk"><h4>Контакт</h4><label>Фамилия и имя<input class="inl" id="fName" value="'+esc(c.name)+'"></label><label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label></div>';
-    h+='<div class="blk"><h4>Резиденция</h4><label>Действует до<input class="inl" type="date" id="fExp" value="'+(c.expiry||'')+'"></label>';
-    if(c.expiry){
-      var cur=-1;[120,90,60,30].forEach(function(t,i){if(e<=t)cur=i;});
-      h+=[120,90,60,30].map(function(t,i){var d=iso(new Date(parse(c.expiry).getTime()-t*DAY));var past=diff(d)<0&&i!==cur;
-        return '<div class="rem'+(past?' past':'')+(i===cur?' cur':'')+'"><span>За '+t+' дней</span><span>'+fmt(d)+'</span></div>';}).join('');
-      h+='<div class="small-t" style="margin-top:6px">Напоминания клиенту создаются в эти даты, если дело продления не открыто.</div>';
-    }else h+='<div class="small-t">Укажите дату, и система сама рассчитает напоминания.</div>';
-    h+='</div>';
-    r.innerHTML=h;
-  }
-
   function renderTop(){
     $('demoPill').hidden=!demo;
     var s=$('stat');
@@ -512,7 +555,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   }
   function render(){renderSeg();renderList();renderTabs();
     if(active==='today')renderToday();else renderClient(byId(active));
-    renderRight();save();renderTop();}
+    save();renderTop();}
   function refreshAround(){renderList();renderTabs();}
 
   /* Events */
@@ -525,7 +568,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
     if(e.key==='Enter'){var v=e.target.value.trim();if(!v)return;
-      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,notes:[],next:'',draft:'',goal:'',nextNote:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',resultado:'pendiente'};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
+      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,notes:[],next:'',draft:'',goal:'',nextNote:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',resultado:'pendiente',nat:'',nie:'',phones2:[]};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
@@ -540,6 +583,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function val(id){var el=$(id);return el?el.value:'';}
   function act(a){
     var c=byId(active);if(!c)return;
+    if(a==='addphone'){c.phones2.push('');render();var el=$('fPh2_'+(c.phones2.length-1));if(el)el.focus();return;}
     if(a==='open'){c.cs={type:val('oType'),filed:val('oFiled')||iso(TODAY),reqRecv:null,reqDue:null,answered:null,result:null};ev(c,'Открыто дело: '+c.cs.type+', подано '+fmt(c.cs.filed)+'.');toast('Дело открыто');}
     if(a==='req'){if(!val('rRecv')||!val('rDue')){toast('Укажите обе даты');return;}c.cs.reqRecv=val('rRecv');c.cs.reqDue=val('rDue');ev(c,'Пришёл запрос ведомства. Ответить до '+fmt(c.cs.reqDue)+'.');toast('Запрос записан, напоминание создано');}
     if(a==='ans'){c.cs.answered=val('aDate')||iso(TODAY);ev(c,'Ответ на запрос отправлен '+fmt(c.cs.answered)+'.');toast('Ответ записан');}
@@ -554,15 +598,23 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(id==='nextIn'){c.next=e.target.value.trim();render();}
     if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
     if(id==='fPhone'){c.phone=e.target.value.trim();save();renderTop();}
-    if(id==='fExp'){c.expiry=e.target.value||null;render();}
-    if(id==='fSitu'){c.situ=e.target.value;if(c.tipo&&allowedTipo(c).every(function(o){return o.v!==c.tipo;}))c.tipo='';render();}
-    if(id==='fTipo'){c.tipo=e.target.value;render();}
-    if(id==='fEstado'){c.estado=e.target.value;render();}
-    if(id==='fRes'){c.resultado=e.target.value||'pendiente';render();}
-    if(id==='fDoc'){c.doc=e.target.value;if(c.doc!=='otro')c.otroDoc='';render();}
+    function setEnum(key,list){
+      var t=e.target.value.trim();
+      if(!t){c[key]=key==='resultado'?'pendiente':'';}
+      else{var o=pick(list,t);if(o)c[key]=o.v;else toast('Выберите вариант из списка');}
+    }
+    if(id==='fExp'){var t0=e.target.value.trim();if(!t0)c.expiry=null;else{var iv=parseDMY(t0);if(iv)c.expiry=iv;else toast('Дата в формате ДД.ММ.ГГГГ');}render();}
+    if(id==='fSitu'){setEnum('situ',OPT.situ);if(c.tipo&&allowedTipo(c).every(function(o){return o.v!==c.tipo;}))c.tipo='';render();}
+    if(id==='fTipo'){setEnum('tipo',allowedTipo(c));render();}
+    if(id==='fEstado'){setEnum('estado',OPT.estado);render();}
+    if(id==='fRes'){setEnum('resultado',OPT.res);render();}
+    if(id==='fDoc'){setEnum('doc',OPT.doc);if(c.doc!=='otro')c.otroDoc='';render();}
     if(id==='fOtro'){c.otroDoc=e.target.value.trim();render();}
     if(id==='fGoal'){c.goal=e.target.value.trim();render();}
     if(id==='fNextNote'){c.nextNote=e.target.value.trim();render();}
+    if(id==='fNat'){c.nat=e.target.value;render();}
+    if(id==='fNie'){c.nie=e.target.value.toUpperCase().replace(/[\s-]/g,'');render();}
+    if(/^fPh2_\d+$/.test(id)){var ix=+id.slice(5);c.phones2[ix]=e.target.value.trim();c.phones2=c.phones2.filter(function(p,i){return p||i!==ix;});render();}
   });
   $('noteIn').addEventListener('input',function(){var c=byId(active);if(c)c.draft=this.value;});
   function addNote(){var c=byId(active),v=$('noteIn').value.trim();if(!c||!v)return;c.notes.push({t:'note',text:v,date:iso(TODAY)});c.draft='';render();var m=$('main');m.scrollTop=m.scrollHeight;$('noteIn').focus();}

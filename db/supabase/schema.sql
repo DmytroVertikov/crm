@@ -15,7 +15,10 @@ create table public.clients (
   otro_documento       text,
   resultado_expediente text not null default 'pendiente',
   goal                 text not null default '',
-  next_note            text not null default ''
+  next_note            text not null default '',
+  nationality          text,                      -- ISO 3166-1 alpha-2, список в config/countries.json
+  nie                  text,
+  extra_phones         text[] not null default '{}'
 );
 
 create table public.cases (

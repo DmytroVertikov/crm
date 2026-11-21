@@ -15,18 +15,66 @@
       "type": "enum",
       "required": true,
       "options": [
-        { "value": "estancia_turistica", "label_es": "Estancia turística", "label_ru": "Туристическое пребывание" },
-        { "value": "estancia_estudios", "label_es": "Estancia por estudios", "label_ru": "Студенческое пребывание" },
-        { "value": "proteccion_temporal", "label_es": "Protección temporal", "label_ru": "Временная защита" },
-        { "value": "solicitud_proteccion_internacional", "label_es": "Solicitud de protección internacional", "label_ru": "Запрос международной защиты" },
-        { "value": "proteccion_internacional_concedida", "label_es": "Protección internacional concedida", "label_ru": "Международная защита получена" },
-        { "value": "residencia_temporal", "label_es": "Residencia temporal", "label_ru": "Временный ВНЖ" },
-        { "value": "residencia_larga_duracion", "label_es": "Residencia de larga duración", "label_ru": "ПМЖ" },
-        { "value": "residencia_familiar_ue", "label_es": "Residencia de familiar de ciudadano UE", "label_ru": "ВНЖ члена семьи гражданина ЕС" },
-        { "value": "residencia_familiar_es", "label_es": "Residencia de familiar de ciudadano español", "label_ru": "ВНЖ члена семьи гражданина Испании" },
-        { "value": "residencia_circunstancias_excepcionales", "label_es": "Residencia por circunstancias excepcionales", "label_ru": "ВНЖ по исключительным обстоятельствам" },
-        { "value": "irregular", "label_es": "Irregular", "label_ru": "Нелегальное пребывание" },
-        { "value": "otra", "label_es": "Otra situación", "label_ru": "Другое" }
+        {
+          "value": "estancia_turistica",
+          "label_es": "Estancia turística",
+          "label_ru": "Туристическое пребывание"
+        },
+        {
+          "value": "estancia_estudios",
+          "label_es": "Estancia por estudios",
+          "label_ru": "Студенческое пребывание"
+        },
+        {
+          "value": "proteccion_temporal",
+          "label_es": "Protección temporal",
+          "label_ru": "Временная защита"
+        },
+        {
+          "value": "solicitud_proteccion_internacional",
+          "label_es": "Solicitud de protección internacional",
+          "label_ru": "Запрос международной защиты"
+        },
+        {
+          "value": "proteccion_internacional_concedida",
+          "label_es": "Protección internacional concedida",
+          "label_ru": "Международная защита получена"
+        },
+        {
+          "value": "residencia_temporal",
+          "label_es": "Residencia temporal",
+          "label_ru": "Временный ВНЖ"
+        },
+        {
+          "value": "residencia_larga_duracion",
+          "label_es": "Residencia de larga duración",
+          "label_ru": "ПМЖ"
+        },
+        {
+          "value": "residencia_familiar_ue",
+          "label_es": "Residencia de familiar de ciudadano UE",
+          "label_ru": "ВНЖ члена семьи гражданина ЕС"
+        },
+        {
+          "value": "residencia_familiar_es",
+          "label_es": "Residencia de familiar de ciudadano español",
+          "label_ru": "ВНЖ члена семьи гражданина Испании"
+        },
+        {
+          "value": "residencia_circunstancias_excepcionales",
+          "label_es": "Residencia por circunstancias excepcionales",
+          "label_ru": "ВНЖ по исключительным обстоятельствам"
+        },
+        {
+          "value": "irregular",
+          "label_es": "Irregular",
+          "label_ru": "Нелегальное пребывание"
+        },
+        {
+          "value": "otra",
+          "label_es": "Otra situación",
+          "label_ru": "Другое"
+        }
       ]
     },
     {
@@ -37,29 +85,191 @@
       "type": "enum",
       "required": true,
       "options": [
-        { "value": "no_lucrativa", "label_es": "No lucrativa", "label_ru": "ВНЖ без права на работу", "situacion": ["residencia_temporal"] },
-        { "value": "cuenta_ajena", "label_es": "Cuenta ajena", "label_ru": "Работа по найму", "situacion": ["residencia_temporal"] },
-        { "value": "cuenta_propia", "label_es": "Cuenta propia", "label_ru": "Самозанятость", "situacion": ["residencia_temporal"] },
-        { "value": "trabajo_temporada", "label_es": "Trabajo de temporada", "label_ru": "Сезонная работа", "situacion": ["residencia_temporal"], "note": "Сезонность, макс. 9 месяцев/год, возможность повторного найма" },
-        { "value": "reagrupacion_familiar", "label_es": "Reagrupación familiar", "label_ru": "Воссоединение семьи", "situacion": ["residencia_temporal"] },
-        { "value": "familiar_ciudadano_es", "label_es": "Familiar de ciudadano español", "label_ru": "Член семьи гражданина Испании", "situacion": ["residencia_familiar_es"] },
-        { "value": "familiar_ciudadano_ue", "label_es": "Familiar de ciudadano de la UE", "label_ru": "Член семьи гражданина ЕС", "situacion": ["residencia_familiar_ue"] },
-        { "value": "arraigo_social", "label_es": "Arraigo social", "label_ru": "Социальное укоренение", "situacion": ["residencia_circunstancias_excepcionales"] },
-        { "value": "arraigo_sociolaboral", "label_es": "Arraigo sociolaboral", "label_ru": "Трудовое укоренение", "situacion": ["residencia_circunstancias_excepcionales"] },
-        { "value": "arraigo_socioformativo", "label_es": "Arraigo socioformativo", "label_ru": "Учебное укоренение", "situacion": ["residencia_circunstancias_excepcionales"] },
-        { "value": "arraigo_familiar", "label_es": "Arraigo familiar", "label_ru": "Семейное укоренение", "situacion": ["residencia_circunstancias_excepcionales"], "note": "Сохранён согласно Reglamento RD 1155/2024" },
-        { "value": "arraigo_segunda_oportunidad", "label_es": "Arraigo de segunda oportunidad", "label_ru": "Укоренение «второй шанс»", "situacion": ["residencia_circunstancias_excepcionales"] },
-        { "value": "teletrabajo_internacional", "label_es": "Autorización de residencia para teletrabajo de carácter internacional", "label_ru": "Международный телеработник", "situacion": ["residencia_temporal"], "note": "Специальный режим Ley 14/2013" },
-        { "value": "profesional_altamente_cualificado", "label_es": "Profesional altamente cualificado", "label_ru": "Высококвалифицированный специалист", "situacion": ["residencia_temporal"] },
-        { "value": "tarjeta_azul_ue", "label_es": "Tarjeta azul-UE", "label_ru": "Голубая карта ЕС", "situacion": ["residencia_temporal"] },
-        { "value": "emprendedores", "label_es": "Emprendedores", "label_ru": "Предприниматели", "situacion": ["residencia_temporal"] },
-        { "value": "investigadores", "label_es": "Investigadores", "label_ru": "Исследователи", "situacion": ["residencia_temporal"] },
-        { "value": "traslado_intraempresarial", "label_es": "Traslado intraempresarial", "label_ru": "Внутрикорпоративный перевод", "situacion": ["residencia_temporal"] },
-        { "value": "proteccion_temporal", "label_es": "Protección temporal", "label_ru": "Временная защита", "situacion": ["proteccion_temporal"] },
-        { "value": "razones_humanitarias", "label_es": "Razones humanitarias", "label_ru": "Гуманитарные причины", "situacion": ["residencia_circunstancias_excepcionales"] },
-        { "value": "larga_duracion", "label_es": "Larga duración", "label_ru": "ПМЖ", "situacion": ["residencia_larga_duracion"] },
-        { "value": "larga_duracion_ue", "label_es": "Larga duración-UE", "label_ru": "ПМЖ", "situacion": ["residencia_larga_duracion"] },
-        { "value": "otra", "label_es": "Otra autorización", "label_ru": "Другое разрешение", "situacion": [] }
+        {
+          "value": "no_lucrativa",
+          "label_es": "No lucrativa",
+          "label_ru": "ВНЖ без права на работу",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "cuenta_ajena",
+          "label_es": "Cuenta ajena",
+          "label_ru": "Работа по найму",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "cuenta_propia",
+          "label_es": "Cuenta propia",
+          "label_ru": "Самозанятость",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "trabajo_temporada",
+          "label_es": "Trabajo de temporada",
+          "label_ru": "Сезонная работа",
+          "situacion": [
+            "residencia_temporal"
+          ],
+          "note": "Сезонность, макс. 9 месяцев/год, возможность повторного найма"
+        },
+        {
+          "value": "reagrupacion_familiar",
+          "label_es": "Reagrupación familiar",
+          "label_ru": "Воссоединение семьи",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "familiar_ciudadano_es",
+          "label_es": "Familiar de ciudadano español",
+          "label_ru": "Член семьи гражданина Испании",
+          "situacion": [
+            "residencia_familiar_es"
+          ]
+        },
+        {
+          "value": "familiar_ciudadano_ue",
+          "label_es": "Familiar de ciudadano de la UE",
+          "label_ru": "Член семьи гражданина ЕС",
+          "situacion": [
+            "residencia_familiar_ue"
+          ]
+        },
+        {
+          "value": "arraigo_social",
+          "label_es": "Arraigo social",
+          "label_ru": "Социальное укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales"
+          ]
+        },
+        {
+          "value": "arraigo_sociolaboral",
+          "label_es": "Arraigo sociolaboral",
+          "label_ru": "Трудовое укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales"
+          ]
+        },
+        {
+          "value": "arraigo_socioformativo",
+          "label_es": "Arraigo socioformativo",
+          "label_ru": "Учебное укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales"
+          ]
+        },
+        {
+          "value": "arraigo_familiar",
+          "label_es": "Arraigo familiar",
+          "label_ru": "Семейное укоренение",
+          "situacion": [
+            "residencia_circunstancias_excepcionales"
+          ],
+          "note": "Сохранён согласно Reglamento RD 1155/2024"
+        },
+        {
+          "value": "arraigo_segunda_oportunidad",
+          "label_es": "Arraigo de segunda oportunidad",
+          "label_ru": "Укоренение «второй шанс»",
+          "situacion": [
+            "residencia_circunstancias_excepcionales"
+          ]
+        },
+        {
+          "value": "teletrabajo_internacional",
+          "label_es": "Autorización de residencia para teletrabajo de carácter internacional",
+          "label_ru": "Международный телеработник",
+          "situacion": [
+            "residencia_temporal"
+          ],
+          "note": "Специальный режим Ley 14/2013"
+        },
+        {
+          "value": "profesional_altamente_cualificado",
+          "label_es": "Profesional altamente cualificado",
+          "label_ru": "Высококвалифицированный специалист",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "tarjeta_azul_ue",
+          "label_es": "Tarjeta azul-UE",
+          "label_ru": "Голубая карта ЕС",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "emprendedores",
+          "label_es": "Emprendedores",
+          "label_ru": "Предприниматели",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "investigadores",
+          "label_es": "Investigadores",
+          "label_ru": "Исследователи",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "traslado_intraempresarial",
+          "label_es": "Traslado intraempresarial",
+          "label_ru": "Внутрикорпоративный перевод",
+          "situacion": [
+            "residencia_temporal"
+          ]
+        },
+        {
+          "value": "proteccion_temporal",
+          "label_es": "Protección temporal",
+          "label_ru": "Временная защита",
+          "situacion": [
+            "proteccion_temporal"
+          ]
+        },
+        {
+          "value": "razones_humanitarias",
+          "label_es": "Razones humanitarias",
+          "label_ru": "Гуманитарные причины",
+          "situacion": [
+            "residencia_circunstancias_excepcionales"
+          ]
+        },
+        {
+          "value": "larga_duracion",
+          "label_es": "Larga duración",
+          "label_ru": "ПМЖ",
+          "situacion": [
+            "residencia_larga_duracion"
+          ]
+        },
+        {
+          "value": "larga_duracion_ue",
+          "label_es": "Larga duración-UE",
+          "label_ru": "ПМЖ",
+          "situacion": [
+            "residencia_larga_duracion"
+          ]
+        },
+        {
+          "value": "otra",
+          "label_es": "Otra autorización",
+          "label_ru": "Другое разрешение",
+          "situacion": []
+        }
       ]
     },
     {
@@ -70,11 +280,31 @@
       "type": "enum",
       "required": true,
       "options": [
-        { "value": "en_vigor", "label_es": "En vigor", "label_ru": "Действителен" },
-        { "value": "en_tramite", "label_es": "En trámite", "label_ru": "В процессе рассмотрения" },
-        { "value": "pendiente_cita", "label_es": "Pendiente de cita", "label_ru": "Ожидание записи на приём" },
-        { "value": "requerimiento", "label_es": "Requerimiento", "label_ru": "Запрос дополнительных документов" },
-        { "value": "recurso_presentado", "label_es": "Recurso presentado", "label_ru": "Подана жалоба" }
+        {
+          "value": "en_vigor",
+          "label_es": "En vigor",
+          "label_ru": "Действителен"
+        },
+        {
+          "value": "en_tramite",
+          "label_es": "En trámite",
+          "label_ru": "В процессе рассмотрения"
+        },
+        {
+          "value": "pendiente_cita",
+          "label_es": "Pendiente de cita",
+          "label_ru": "Ожидание записи на приём"
+        },
+        {
+          "value": "requerimiento",
+          "label_es": "Requerimiento",
+          "label_ru": "Запрос дополнительных документов"
+        },
+        {
+          "value": "recurso_presentado",
+          "label_es": "Recurso presentado",
+          "label_ru": "Подана жалоба"
+        }
       ]
     },
     {
@@ -86,17 +316,61 @@
       "required": true,
       "description": "Документ, подтверждающий статус. NIE сюда не входит; NIE указывается отдельно. Если нужного варианта нет, выберите Otro и заполните otro_documento.",
       "options": [
-        { "value": "tie_general", "label_es": "TIE (tarjeta de identidad de extranjero)", "label_ru": "TIE (карта иностранца)" },
-        { "value": "tie_brexit", "label_es": "Tarjeta por Acuerdo de Retirada (Brexit)", "label_ru": "Карта по Соглашению о выходе (Brexit)" },
-        { "value": "certificado_registro_ue", "label_es": "Certificado de registro de ciudadano de la UE", "label_ru": "Сертификат регистрации гражданина ЕС" },
-        { "value": "resguardo_solicitud", "label_es": "Resguardo de solicitud", "label_ru": "Подтверждение подачи заявления" },
-        { "value": "resolucion_favorable", "label_es": "Resolución favorable", "label_ru": "Положительное решение" },
-        { "value": "autorizacion_regreso", "label_es": "Autorización de regreso", "label_ru": "Разрешение на возвращение" },
-        { "value": "pasaporte", "label_es": "Pasaporte", "label_ru": "Паспорт" },
-        { "value": "visado", "label_es": "Visado", "label_ru": "Виза" },
-        { "value": "doc_solicitante_proteccion", "label_es": "Documento de solicitante de protección internacional", "label_ru": "Документ заявителя на международную защиту" },
-        { "value": "cedula_inscripcion", "label_es": "Cédula de inscripción", "label_ru": "Удостоверение регистрации (для лиц без документов)" },
-        { "value": "otro", "label_es": "Otro", "label_ru": "Другое" }
+        {
+          "value": "tie_general",
+          "label_es": "TIE (tarjeta de identidad de extranjero)",
+          "label_ru": "TIE (карта иностранца)"
+        },
+        {
+          "value": "tie_brexit",
+          "label_es": "Tarjeta por Acuerdo de Retirada (Brexit)",
+          "label_ru": "Карта по Соглашению о выходе (Brexit)"
+        },
+        {
+          "value": "certificado_registro_ue",
+          "label_es": "Certificado de registro de ciudadano de la UE",
+          "label_ru": "Сертификат регистрации гражданина ЕС"
+        },
+        {
+          "value": "resguardo_solicitud",
+          "label_es": "Resguardo de solicitud",
+          "label_ru": "Подтверждение подачи заявления"
+        },
+        {
+          "value": "resolucion_favorable",
+          "label_es": "Resolución favorable",
+          "label_ru": "Положительное решение"
+        },
+        {
+          "value": "autorizacion_regreso",
+          "label_es": "Autorización de regreso",
+          "label_ru": "Разрешение на возвращение"
+        },
+        {
+          "value": "pasaporte",
+          "label_es": "Pasaporte",
+          "label_ru": "Паспорт"
+        },
+        {
+          "value": "visado",
+          "label_es": "Visado",
+          "label_ru": "Виза"
+        },
+        {
+          "value": "doc_solicitante_proteccion",
+          "label_es": "Documento de solicitante de protección internacional",
+          "label_ru": "Документ заявителя на международную защиту"
+        },
+        {
+          "value": "cedula_inscripcion",
+          "label_es": "Cédula de inscripción",
+          "label_ru": "Удостоверение регистрации (для лиц без документов)"
+        },
+        {
+          "value": "otro",
+          "label_es": "Otro",
+          "label_ru": "Другое"
+        }
       ]
     },
     {
@@ -108,9 +382,21 @@
       "required": true,
       "default": "pendiente",
       "options": [
-        { "value": "favorable", "label_es": "Favorable", "label_ru": "Положительный" },
-        { "value": "desfavorable", "label_es": "Desfavorable", "label_ru": "Отрицательный" },
-        { "value": "pendiente", "label_es": "Pendiente", "label_ru": "Ожидается" }
+        {
+          "value": "favorable",
+          "label_es": "Favorable",
+          "label_ru": "Положительный"
+        },
+        {
+          "value": "desfavorable",
+          "label_es": "Desfavorable",
+          "label_ru": "Отрицательный"
+        },
+        {
+          "value": "pendiente",
+          "label_es": "Pendiente",
+          "label_ru": "Ожидается"
+        }
       ]
     }
   ],
@@ -120,7 +406,94 @@
       "name_es": "Otro documento",
       "name_ru": "Другой документ",
       "type": "string",
-      "required_when": { "field": "tipo_documento_acreditativo", "equals": "otro" }
+      "required_when": {
+        "field": "tipo_documento_acreditativo",
+        "equals": "otro"
+      }
     }
-  ]
+  ],
+  "text_suggestions": {
+    "objetivo_principal": {
+      "name_es": "Objetivo principal",
+      "name_ru": "Главная цель",
+      "type": "text_with_suggestions",
+      "options": [
+        {
+          "label_ru": "Получить первый ВНЖ",
+          "label_es": "Obtener residencia inicial"
+        },
+        {
+          "label_ru": "Продлить ВНЖ",
+          "label_es": "Renovar residencia"
+        },
+        {
+          "label_ru": "Получить долгосрочный ВНЖ",
+          "label_es": "Obtener residencia de larga duración"
+        },
+        {
+          "label_ru": "Получить гражданство Испании",
+          "label_es": "Obtener nacionalidad española"
+        },
+        {
+          "label_ru": "Воссоединить семью",
+          "label_es": "Reagrupar familiar"
+        },
+        {
+          "label_ru": "Легализоваться (выйти из нелегального статуса) (Regularizar situación",
+          "label_es": "salir de irregular)"
+        },
+        {
+          "label_ru": "Получить защиту (убежище/временная)",
+          "label_es": "Obtener protección internacional / temporal"
+        },
+        {
+          "label_ru": "Оспорить отказ (защитить пребывание) (Recurrir denegación",
+          "label_es": "defender estancia)"
+        },
+        {
+          "label_ru": "Сохранить текущий статус (без новых процедур) (Mantener estatus actual",
+          "label_es": "sin trámite nuevo)"
+        }
+      ]
+    },
+    "proximo_paso": {
+      "name_es": "Próximo paso / acción inmediata",
+      "name_ru": "Следующий шаг (действие)",
+      "type": "text_with_suggestions",
+      "options": [
+        {
+          "label_ru": "Собрать документы",
+          "label_es": "Recopilar documentación"
+        },
+        {
+          "label_ru": "Записаться на приём",
+          "label_es": "Solicitar cita previa"
+        },
+        {
+          "label_ru": "Подать дело",
+          "label_es": "Presentar expediente"
+        },
+        {
+          "label_ru": "Ожидать решения (действий не требуется) (Esperar resolución",
+          "label_es": "sin acción del cliente)"
+        },
+        {
+          "label_ru": "Донести документы (по запросу) (Entregar documentos adicionales",
+          "label_es": "requerimiento)"
+        },
+        {
+          "label_ru": "Сдать отпечатки пальцев (TIE) (Cita para toma de huellas",
+          "label_es": "TIE)"
+        },
+        {
+          "label_ru": "Забрать карту (TIE) (Recoger tarjeta",
+          "label_es": "TIE)"
+        },
+        {
+          "label_ru": "Подготовить апелляцию",
+          "label_es": "Preparar recurso de alzada"
+        }
+      ]
+    }
+  }
 }
