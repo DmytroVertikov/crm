@@ -113,6 +113,14 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .small-t{color:var(--muted);font-size:13px}
 .inline{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:flex-end}
 .inline label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin:10px 0 14px}
+.box{border:1px solid var(--line);border-radius:10px;padding:10px 14px 12px;background:var(--surface)}
+.box h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 12px}
+.g2 label{display:flex;flex-direction:column;justify-content:space-between;gap:3px;font-size:13px;font-weight:600;min-width:0}
+.g2 .inl{width:100%;font-weight:400;text-overflow:ellipsis}
+.g2 .hint{font-weight:400;font-size:12px;color:var(--muted)}
+.g2 .full{grid-column:1/-1}
 .card{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px;background:var(--surface)}
 .card .h{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:12.5px;margin-bottom:2px}
 .card.ev{background:var(--bg)}
@@ -222,7 +230,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     {id:9,num:1008,name:'Фёдорова Ксения',phone:'+34 611 000 109',expiry:off(400),cs:{type:'Продление',filed:off(-150),reqRecv:off(-100),reqDue:off(-85),answered:off(-90),result:{text:'Одобрено',date:off(-10)}},notes:[]},
     {id:10,num:1040,name:'Тихонов Павел',phone:'+34 611 000 110',expiry:off(150),cs:{type:'Первичная подача',filed:off(-30),reqRecv:off(-3),reqDue:off(9),answered:null,result:null},notes:[]}
   ];
-  clients.forEach(function(c){c.next='';c.draft='';});
+  clients.forEach(function(c){c.next='';c.draft='';c.goal='';c.nextNote='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.resultado='pendiente';});
   var sent={},tabs=[],active='today',filter='all',adding=false;
 
   /* Storage: this browser only. Backup file moves data between devices. */
@@ -231,7 +239,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
     clients=o.clients;sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
-    clients.forEach(function(c){c.notes=c.notes||[];c.next=c.next||'';c.draft='';c.phone=c.phone||'';if(c.id>=nextId)nextId=c.id+1;});
+    clients.forEach(function(c){c.notes=c.notes||[];c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.resultado=c.resultado||'pendiente';if(c.id>=nextId)nextId=c.id+1;});
     tabs=[];active='today';filter='all';
   }
   function save(){try{localStorage.setItem(KEY,snapshot());storeOk=true;savedAt=new Date();}catch(e){storeOk=false;}remoteSoon();}
@@ -251,7 +259,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
         return opt.method&&opt.method!=='GET'?null:r.json();});
   }
   function toRows(c){
-    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||''};
+    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,resultado_expediente:c.resultado||'pendiente',goal:c.goal||'',next_note:c.nextNote||''};
     var k=c.cs?{client_id:c.id,type:c.cs.type,filed:c.cs.filed,req_received:c.cs.reqRecv||null,req_due:c.cs.reqDue||null,
       answered:c.cs.answered||null,result_text:c.cs.result?c.cs.result.text:null,result_date:c.cs.result?c.cs.result.date:null}:null;
     var n=c.notes.map(function(x){return {client_id:c.id,kind:x.t,text:x.text,date:x.date};});
@@ -260,7 +268,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function fromRemote(cl,ks,ns){
     var out=cl.map(function(r){
       var k=ks.filter(function(z){return z.client_id===r.id;})[0];
-      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,next:r.next_step||'',draft:'',
+      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,next:r.next_step||'',draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',resultado:r.resultado_expediente||'pendiente',goal:r.goal||'',nextNote:r.next_note||'',
         cs:k?{type:k.type,filed:k.filed,reqRecv:k.req_received,reqDue:k.req_due,answered:k.answered,
           result:k.result_text?{text:k.result_text,date:k.result_date}:null}:null,
         notes:ns.filter(function(z){return z.client_id===r.id;}).sort(function(a,b){return a.id-b.id;})
@@ -418,13 +426,41 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 
   /* Center: client card */
   function stp(title,date,done,now,extra){return '<li class="step '+(done?'done':now?'now':'')+'"><span class="dot">'+(done?'✓':'')+'</span><div><b>'+esc(title)+'</b><span class="small-t">'+(date?fmt(date):'ещё не было')+'</span>'+extra+'</div></li>';}
+  /* Опции карточки: копия config/crm_options.json (v2.1). Править в JSON и пересобирать сюда. */
+  var OPT={"situ":[{"v":"estancia_turistica","ru":"Туристическое пребывание","es":"Estancia turística"},{"v":"estancia_estudios","ru":"Студенческое пребывание","es":"Estancia por estudios"},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal"},{"v":"solicitud_proteccion_internacional","ru":"Запрос международной защиты","es":"Solicitud de protección internacional"},{"v":"proteccion_internacional_concedida","ru":"Международная защита получена","es":"Protección internacional concedida"},{"v":"residencia_temporal","ru":"Временный ВНЖ","es":"Residencia temporal"},{"v":"residencia_larga_duracion","ru":"ПМЖ","es":"Residencia de larga duración"},{"v":"residencia_familiar_ue","ru":"ВНЖ члена семьи гражданина ЕС","es":"Residencia de familiar de ciudadano UE"},{"v":"residencia_familiar_es","ru":"ВНЖ члена семьи гражданина Испании","es":"Residencia de familiar de ciudadano español"},{"v":"residencia_circunstancias_excepcionales","ru":"ВНЖ по исключительным обстоятельствам","es":"Residencia por circunstancias excepcionales"},{"v":"irregular","ru":"Нелегальное пребывание","es":"Irregular"},{"v":"otra","ru":"Другое","es":"Otra situación"}],"tipo":[{"v":"no_lucrativa","ru":"ВНЖ без права на работу","es":"No lucrativa","sit":["residencia_temporal"]},{"v":"cuenta_ajena","ru":"Работа по найму","es":"Cuenta ajena","sit":["residencia_temporal"]},{"v":"cuenta_propia","ru":"Самозанятость","es":"Cuenta propia","sit":["residencia_temporal"]},{"v":"trabajo_temporada","ru":"Сезонная работа","es":"Trabajo de temporada","sit":["residencia_temporal"],"note":"Сезонность, макс. 9 месяцев/год, возможность повторного найма"},{"v":"reagrupacion_familiar","ru":"Воссоединение семьи","es":"Reagrupación familiar","sit":["residencia_temporal"]},{"v":"familiar_ciudadano_es","ru":"Член семьи гражданина Испании","es":"Familiar de ciudadano español","sit":["residencia_familiar_es"]},{"v":"familiar_ciudadano_ue","ru":"Член семьи гражданина ЕС","es":"Familiar de ciudadano de la UE","sit":["residencia_familiar_ue"]},{"v":"arraigo_social","ru":"Социальное укоренение","es":"Arraigo social","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_sociolaboral","ru":"Трудовое укоренение","es":"Arraigo sociolaboral","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_socioformativo","ru":"Учебное укоренение","es":"Arraigo socioformativo","sit":["residencia_circunstancias_excepcionales"]},{"v":"arraigo_familiar","ru":"Семейное укоренение","es":"Arraigo familiar","sit":["residencia_circunstancias_excepcionales"],"note":"Сохранён согласно Reglamento RD 1155/2024"},{"v":"arraigo_segunda_oportunidad","ru":"Укоренение «второй шанс»","es":"Arraigo de segunda oportunidad","sit":["residencia_circunstancias_excepcionales"]},{"v":"teletrabajo_internacional","ru":"Международный телеработник","es":"Autorización de residencia para teletrabajo de carácter internacional","sit":["residencia_temporal"],"note":"Специальный режим Ley 14/2013"},{"v":"profesional_altamente_cualificado","ru":"Высококвалифицированный специалист","es":"Profesional altamente cualificado","sit":["residencia_temporal"]},{"v":"tarjeta_azul_ue","ru":"Голубая карта ЕС","es":"Tarjeta azul-UE","sit":["residencia_temporal"]},{"v":"emprendedores","ru":"Предприниматели","es":"Emprendedores","sit":["residencia_temporal"]},{"v":"investigadores","ru":"Исследователи","es":"Investigadores","sit":["residencia_temporal"]},{"v":"traslado_intraempresarial","ru":"Внутрикорпоративный перевод","es":"Traslado intraempresarial","sit":["residencia_temporal"]},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal","sit":["proteccion_temporal"]},{"v":"razones_humanitarias","ru":"Гуманитарные причины","es":"Razones humanitarias","sit":["residencia_circunstancias_excepcionales"]},{"v":"larga_duracion","ru":"ПМЖ","es":"Larga duración","sit":["residencia_larga_duracion"]},{"v":"larga_duracion_ue","ru":"ПМЖ","es":"Larga duración-UE","sit":["residencia_larga_duracion"]},{"v":"otra","ru":"Другое разрешение","es":"Otra autorización","sit":[]}],"estado":[{"v":"en_vigor","ru":"Действителен","es":"En vigor"},{"v":"en_tramite","ru":"В процессе рассмотрения","es":"En trámite"},{"v":"pendiente_cita","ru":"Ожидание записи на приём","es":"Pendiente de cita"},{"v":"requerimiento","ru":"Запрос дополнительных документов","es":"Requerimiento"},{"v":"recurso_presentado","ru":"Подана жалоба","es":"Recurso presentado"}],"doc":[{"v":"tie_general","ru":"TIE (карта иностранца)","es":"TIE (tarjeta de identidad de extranjero)"},{"v":"tie_brexit","ru":"Карта по Соглашению о выходе (Brexit)","es":"Tarjeta por Acuerdo de Retirada (Brexit)"},{"v":"certificado_registro_ue","ru":"Сертификат регистрации гражданина ЕС","es":"Certificado de registro de ciudadano de la UE"},{"v":"resguardo_solicitud","ru":"Подтверждение подачи заявления","es":"Resguardo de solicitud"},{"v":"resolucion_favorable","ru":"Положительное решение","es":"Resolución favorable"},{"v":"autorizacion_regreso","ru":"Разрешение на возвращение","es":"Autorización de regreso"},{"v":"pasaporte","ru":"Паспорт","es":"Pasaporte"},{"v":"visado","ru":"Виза","es":"Visado"},{"v":"doc_solicitante_proteccion","ru":"Документ заявителя на международную защиту","es":"Documento de solicitante de protección internacional"},{"v":"cedula_inscripcion","ru":"Удостоверение регистрации (для лиц без документов)","es":"Cédula de inscripción"},{"v":"otro","ru":"Другое","es":"Otro"}],"res":[{"v":"favorable","ru":"Положительный","es":"Favorable"},{"v":"desfavorable","ru":"Отрицательный","es":"Desfavorable"},{"v":"pendiente","ru":"Ожидается","es":"Pendiente"}],"name":{"situ":"Административный статус (Situación administrativa)","tipo":"Основание / тип разрешения (Tipo de autorización / Fundamento)","estado":"Стадия рассмотрения дела (Estado del expediente)","doc":"Тип подтверждающего документа (Tipo de documento acreditativo)","res":"Результат дела (Resultado del expediente)"}};
+  function lab(o){return o.ru+' ('+o.es+')';}
+  function allowedTipo(c){return OPT.tipo.filter(function(o){return !c.situ||!o.sit.length||o.sit.indexOf(c.situ)>=0;});}
+  function selF(id,label,list,cur,req,cls){
+    var sel=list.filter(function(o){return o.v===cur;})[0];
+    return '<label class="'+(cls||'')+'">'+label+(req?' *':'')+'<select class="inl" id="'+id+'" title="'+esc(sel?lab(sel):'')+'"><option value="">Выберите (Seleccione)</option>'+
+      list.map(function(o){return '<option value="'+o.v+'"'+(o.v===cur?' selected':'')+'>'+esc(lab(o))+'</option>';}).join('')+'</select>'+
+      (sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
+  }
+  function txtF(id,label,val,ph,cls){return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"></label>';}
+  function cardFields(c,dv){
+    var h='<div class="two"><section class="box"><h4>Что делаем сейчас</h4><div class="g2">';
+    h+=txtF('fGoal','Главная цель (Objetivo principal)',c.goal,'Начните вводить / Empiece a escribir');
+    h+=selF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
+    h+=selF('fRes',OPT.name.res,OPT.res,c.resultado,true);
+    h+=txtF('nextIn','Следующий шаг (Próximo paso / acción inmediata)',c.next,dv?dv.t:'Начните вводить / Empiece a escribir');
+    h+=txtF('fNextNote','Комментарий к следующему шагу (Comentario sobre el próximo paso)',c.nextNote,'Добавьте подробности к действию','full');
+    h+='</div></section><section class="box"><h4>Текущий статус</h4><div class="g2">';
+    h+=selF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
+    h+=selF('fTipo',OPT.name.tipo,allowedTipo(c),c.tipo,true);
+    h+=selF('fDoc',OPT.name.doc,OPT.doc,c.doc,true);
+    h+='<label>Срок действия / дата истечения (Vigencia / Fecha de caducidad)<input class="inl" type="date" id="fExp" value="'+esc(c.expiry||'')+'"></label>';
+    if(c.doc==='otro')h+=txtF('fOtro','Другой документ (Otro documento) *',c.otroDoc,'Укажите документ / Indique el documento','full');
+    h+='</div></section></div>';
+    return h;
+  }
+
   function renderClient(c){
     var k=c.cs,st=status(c),s=stage(c),dv=derived(c),h='';
     h+='<h1>'+esc(c.name)+'</h1><p class="sub">Дело №'+c.num+(k?' · '+esc(k.type):' · нет открытого дела')+'</p>';
     h+='<div class="meta"><span class="pill '+st.k+'">'+esc(st.t)+'</span>';
     if(k)h+='<label>Тип дела <select class="inl" id="cType">'+TYPES.map(function(t){return '<option'+(t===k.type?' selected':'')+'>'+t+'</option>';}).join('')+'</select></label>';
     h+='</div>';
-    h+='<div class="next"><b>Следующий шаг:</b><input class="inl" id="nextIn" value="'+esc(c.next)+'" placeholder="'+esc(dv?dv.t:'не задан, впишите')+'" aria-label="Следующий шаг"></div>';
+    h+=cardFields(c,dv);
     h+='<h3 class="sec">Дело</h3>';
     if(!k){
       h+='<div class="inline"><label>Открыть дело<select class="inl" id="oType">'+TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></label><label>Дата подачи<input class="inl" type="date" id="oFiled" value="'+iso(TODAY)+'"></label><button class="btn small" data-act="open" type="button">Открыть дело</button></div>';
@@ -489,7 +525,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
     if(e.key==='Enter'){var v=e.target.value.trim();if(!v)return;
-      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,notes:[],next:'',draft:''};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
+      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,notes:[],next:'',draft:'',goal:'',nextNote:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',resultado:'pendiente'};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
@@ -519,6 +555,14 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
     if(id==='fPhone'){c.phone=e.target.value.trim();save();renderTop();}
     if(id==='fExp'){c.expiry=e.target.value||null;render();}
+    if(id==='fSitu'){c.situ=e.target.value;if(c.tipo&&allowedTipo(c).every(function(o){return o.v!==c.tipo;}))c.tipo='';render();}
+    if(id==='fTipo'){c.tipo=e.target.value;render();}
+    if(id==='fEstado'){c.estado=e.target.value;render();}
+    if(id==='fRes'){c.resultado=e.target.value||'pendiente';render();}
+    if(id==='fDoc'){c.doc=e.target.value;if(c.doc!=='otro')c.otroDoc='';render();}
+    if(id==='fOtro'){c.otroDoc=e.target.value.trim();render();}
+    if(id==='fGoal'){c.goal=e.target.value.trim();render();}
+    if(id==='fNextNote'){c.nextNote=e.target.value.trim();render();}
   });
   $('noteIn').addEventListener('input',function(){var c=byId(active);if(c)c.draft=this.value;});
   function addNote(){var c=byId(active),v=$('noteIn').value.trim();if(!c||!v)return;c.notes.push({t:'note',text:v,date:iso(TODAY)});c.draft='';render();var m=$('main');m.scrollTop=m.scrollHeight;$('noteIn').focus();}

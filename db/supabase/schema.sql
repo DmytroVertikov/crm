@@ -6,7 +6,16 @@ create table public.clients (
   phone         text,
   email         text,
   permit_expiry date,
-  next_step     text not null default ''
+  next_step     text not null default '',
+  -- поля карточки; допустимые значения в config/crm_options.json
+  situacion            text,
+  tipo_autorizacion    text,
+  estado_expediente    text,
+  tipo_documento       text,
+  otro_documento       text,
+  resultado_expediente text not null default 'pendiente',
+  goal                 text not null default '',
+  next_note            text not null default ''
 );
 
 create table public.cases (
