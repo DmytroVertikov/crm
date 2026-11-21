@@ -13,7 +13,7 @@
       "name_es": "Situación administrativa",
       "name_ru": "Административный статус",
       "type": "enum",
-      "required": true,
+      "required": false,
       "options": [
         {
           "value": "estancia_turistica",
@@ -83,7 +83,7 @@
       "name_es": "Tipo de autorización / Fundamento",
       "name_ru": "Основание / тип разрешения",
       "type": "enum",
-      "required": true,
+      "required": false,
       "options": [
         {
           "value": "no_lucrativa",
@@ -278,7 +278,7 @@
       "name_es": "Estado del expediente",
       "name_ru": "Стадия рассмотрения дела",
       "type": "enum",
-      "required": true,
+      "required": false,
       "options": [
         {
           "value": "en_vigor",
@@ -313,7 +313,7 @@
       "name_es": "Tipo de documento acreditativo",
       "name_ru": "Тип подтверждающего документа",
       "type": "enum",
-      "required": true,
+      "required": false,
       "description": "Документ, подтверждающий статус. NIE сюда не входит; NIE указывается отдельно. Если нужного варианта нет, выберите Otro и заполните otro_documento.",
       "options": [
         {
@@ -379,7 +379,7 @@
       "name_es": "Resultado del expediente",
       "name_ru": "Результат дела",
       "type": "enum",
-      "required": true,
+      "required": false,
       "default": "pendiente",
       "options": [
         {
@@ -406,10 +406,7 @@
       "name_es": "Otro documento",
       "name_ru": "Другой документ",
       "type": "string",
-      "required_when": {
-        "field": "tipo_documento_acreditativo",
-        "equals": "otro"
-      }
+      "required": false
     }
   ],
   "text_suggestions": {
