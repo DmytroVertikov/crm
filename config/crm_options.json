@@ -316,11 +316,6 @@
           "label_ru": "Подана жалоба"
         },
         {
-          "value": "en_vigor",
-          "label_es": "En vigor",
-          "label_ru": "Действителен"
-        },
-        {
           "value": "caducado",
           "label_es": "Caducado",
           "label_ru": "Истёк срок"
