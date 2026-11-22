@@ -472,12 +472,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function known(list,v){return list.some(function(o){return o.v===v;});}
   function allowedTipo(c){return OPT.tipo.filter(function(o){return !c.situ||!known(OPT.situ,c.situ)||!o.sit.length||o.sit.indexOf(c.situ)>=0;});}
   function dlOpts(id,items){return '<datalist id="dl_'+id+'">'+items.map(function(x){return '<option value="'+esc(x)+'"></option>';}).join('')+'</datalist>';}
-  var PH='Начните вводить…',NONE='— не выбрано';
+  var PH='Начните вводить…';
   /* Поле со списком: печатаете, подсказки фильтруются. Если введённое совпало с вариантом, сохраняется его код, иначе — введённый текст как есть. */
   function comboF(id,label,list,cur,req,cls){
     var sel=list.filter(function(o){return o.v===cur;})[0];
     return '<label class="'+(cls||'')+'">'+label+'<input class="inl cb" id="'+id+'" data-enum="1" data-dl="dl_'+id+'" data-sugg="1" value="'+esc(sel?lab(sel):(cur||''))+'" placeholder="'+PH+'" autocomplete="off">'+
-      dlOpts(id,[NONE].concat(list.map(lab)))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
+      dlOpts(id,list.map(lab))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
   }
   function suggF(id,label,items,val,cls,ph){
     return '<label class="'+(cls||'')+'">'+label+'<input class="inl cb" id="'+id+'" data-sugg="1" data-dl="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
@@ -693,7 +693,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(id==='fPhone'){c.phone=e.target.value.trim();render();}
     function setEnum(key,list){
       var t=e.target.value.trim();
-      if(!t||t===NONE){c[key]='';}
+      if(!t){c[key]='';}
       else{var o=pick(list,t);c[key]=o?o.v:t;}
     }
     if(id==='fExp'){var t0=e.target.value.trim();if(!t0)c.expiry=null;else{var iv=parseDMY(t0);if(iv)c.expiry=iv;else toast('Дата в формате ДД.ММ.ГГГГ');}render();}
