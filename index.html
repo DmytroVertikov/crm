@@ -66,6 +66,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn:hover{filter:brightness(1.08)}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
 .btn.ghost:hover{background:var(--accent-soft)}
+.inl.cb{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235d6b75' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+#cbpop{position:fixed;z-index:60;overflow:auto;max-width:min(560px,calc(100vw - 16px));background:var(--surface);border:1px solid var(--line2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:4px}
+#cbpop[hidden]{display:none}
+.cbo{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1.35}
+.cbo:hover,.cbo.hi{background:var(--accent-soft)}
+.cbo.on{font-weight:600;color:var(--accent)}
 .savebar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid var(--line);background:var(--surface)}
 .savebar[hidden]{display:none}
 .savebar .sbmsg{margin-right:auto;font-size:14px;color:var(--warn);font-weight:600}
@@ -470,11 +476,11 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   /* Поле со списком: печатаете, подсказки фильтруются. Если введённое совпало с вариантом, сохраняется его код, иначе — введённый текст как есть. */
   function comboF(id,label,list,cur,req,cls){
     var sel=list.filter(function(o){return o.v===cur;})[0];
-    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" data-enum="1" list="dl_'+id+'" data-sugg="1" value="'+esc(sel?lab(sel):(cur||''))+'" placeholder="'+PH+'" autocomplete="off">'+
+    return '<label class="'+(cls||'')+'">'+label+'<input class="inl cb" id="'+id+'" data-enum="1" data-dl="dl_'+id+'" data-sugg="1" value="'+esc(sel?lab(sel):(cur||''))+'" placeholder="'+PH+'" autocomplete="off">'+
       dlOpts(id,[NONE].concat(list.map(lab)))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
   }
   function suggF(id,label,items,val,cls,ph){
-    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" data-sugg="1" list="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
+    return '<label class="'+(cls||'')+'">'+label+'<input class="inl cb" id="'+id+'" data-sugg="1" data-dl="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
   }
   function txtF(id,label,val,ph,cls){return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"></label>';}
   function pick(list,txt){
@@ -495,7 +501,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var d=new Date(+m[3],+m[2]-1,+m[1]);return d.getMonth()===+m[2]-1&&d.getDate()===+m[1]?iso(d):undefined;}
   function headHtml(c){
     var h='<div class="client-head"><label>Фамилия и имя<input class="client-name" id="fName" value="'+esc(c.name)+'" aria-label="Фамилия и имя"></label>';
-    h+='<label>Гражданство<input class="inl" id="fNat" data-sugg="1" list="dl_fNat" value="'+esc(natLabel(c.nat))+'" placeholder="'+PH+'" autocomplete="off">'+dlOpts('fNat',COUNTRIES.map(function(x){return x[1];}))+'</label>';
+    h+='<label>Гражданство<input class="inl cb" id="fNat" data-sugg="1" data-dl="dl_fNat" value="'+esc(natLabel(c.nat))+'" placeholder="'+PH+'" autocomplete="off">'+dlOpts('fNat',COUNTRIES.map(function(x){return x[1];}))+'</label>';
     h+='<label class="client-nie">NIE<input class="inl" id="fNie" value="'+esc(c.nie)+'" placeholder="X1234567L" maxlength="10" autocomplete="off"></label>';
     h+='<label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label>';
     c.phones2.forEach(function(p,i){h+='<label>Телефон '+(i+2)+'<input class="inl" id="fPh2_'+i+'" value="'+esc(p)+'" placeholder="Оставьте пустым, чтобы удалить"></label>';});
@@ -596,6 +602,50 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   });
   document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('tab')&&e.target.hasAttribute('tabindex')){active=+e.target.getAttribute('data-tab');render();}});
   function updateSaveBar(force){var bar=$('savebar'),c=typeof active==='number'?byId(active):null;bar.hidden=!(c&&(force||isDirty(c)));}
+  /* Свой выпадающий список: текст в поле остаётся и правится как обычно, а все варианты видны при клике.
+     Список фильтруется только после того, как вы начали печатать. */
+  var cbPop=document.createElement('div');cbPop.id='cbpop';cbPop.hidden=true;cbPop.setAttribute('role','listbox');document.body.appendChild(cbPop);
+  var cbIn=null,cbIdx=-1;
+  function isCb(t){return !!(t&&t.getAttribute&&t.getAttribute('data-dl'));}
+  function cbAll(inp){var d=document.getElementById(inp.getAttribute('data-dl'));return d?[].map.call(d.options,function(o){return o.value;}):[];}
+  function cbClose(){cbPop.hidden=true;cbIn=null;cbIdx=-1;}
+  function cbPlace(){
+    if(!cbIn)return;var r=cbIn.getBoundingClientRect(),below=window.innerHeight-r.bottom,h=Math.min(cbPop.scrollHeight,280);
+    cbPop.style.minWidth=r.width+'px';cbPop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-Math.max(r.width,300)-8))+'px';
+    if(below<h+10&&r.top>below){cbPop.style.top='';cbPop.style.bottom=(window.innerHeight-r.top+2)+'px';cbPop.style.maxHeight=Math.min(280,r.top-12)+'px';}
+    else{cbPop.style.bottom='';cbPop.style.top=(r.bottom+2)+'px';cbPop.style.maxHeight=Math.min(280,below-12)+'px';}
+  }
+  function cbOpen(inp,filter){
+    var all=cbAll(inp),q=(filter||'').trim().toLowerCase(),cur=inp.value.trim().toLowerCase();
+    var items=q?all.filter(function(x){return x.toLowerCase().indexOf(q)>=0;}):all;
+    if(!items.length){cbClose();return;}
+    cbIn=inp;cbIdx=-1;
+    cbPop.innerHTML=items.map(function(x,i){var on=!q&&x.toLowerCase()===cur;return '<div class="cbo'+(on?' on':'')+'" role="option" data-i="'+i+'">'+esc(x)+'</div>';}).join('');
+    cbPop._items=items;cbPop.hidden=false;cbPlace();
+    var on=cbPop.querySelector('.on');cbPop.scrollTop=on?Math.max(0,on.offsetTop-cbPop.clientHeight/2):0;
+  }
+  function cbPick(text){
+    var inp=cbIn;if(!inp)return;cbClose();inp.value=text;
+    inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  function cbMark(i){var els=cbPop.querySelectorAll('.cbo');if(!els.length)return;cbIdx=(i+els.length)%els.length;
+    [].forEach.call(els,function(el,k){el.classList.toggle('hi',k===cbIdx);});var el=els[cbIdx];
+    if(el.offsetTop<cbPop.scrollTop)cbPop.scrollTop=el.offsetTop;else if(el.offsetTop+el.offsetHeight>cbPop.scrollTop+cbPop.clientHeight)cbPop.scrollTop=el.offsetTop+el.offsetHeight-cbPop.clientHeight;}
+  document.addEventListener('focusin',function(e){if(isCb(e.target))cbOpen(e.target);});
+  document.addEventListener('mousedown',function(e){
+    var t=e.target;
+    if(cbPop.contains(t)){e.preventDefault();var o=t.closest('.cbo');if(o)cbPick(cbPop._items[+o.getAttribute('data-i')]);return;}
+    if(isCb(t)&&document.activeElement===t&&cbPop.hidden)cbOpen(t);});
+  document.addEventListener('input',function(e){var t=e.target;if(isCb(t)&&document.activeElement===t)cbOpen(t,t.value);});
+  document.addEventListener('keydown',function(e){
+    var t=e.target;if(!isCb(t))return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(cbPop.hidden)cbOpen(t);else cbMark(cbIdx<0?(e.key==='ArrowDown'?0:-1):cbIdx+(e.key==='ArrowDown'?1:-1));}
+    else if(e.key==='Enter'&&!cbPop.hidden&&cbIdx>=0){e.preventDefault();cbPick(cbPop._items[cbIdx]);}
+    else if(e.key==='Escape'&&!cbPop.hidden){e.preventDefault();cbClose();}
+    else if(e.key==='Tab')cbClose();});
+  document.addEventListener('focusout',function(e){if(isCb(e.target))cbClose();});
+  window.addEventListener('resize',cbClose);
+  document.getElementById('main').addEventListener('scroll',cbClose);
   var skipChange=false;
   function blurActive(skip){var ae=document.activeElement;if(ae&&ae.tagName==='INPUT'){skipChange=!!skip;ae.blur();skipChange=false;}}
   function cancelEdit(c){if(c._snap){EF.forEach(function(k){c[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});delete c._snap;}}
@@ -632,13 +682,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(a==='exp'){if(val('newExp')){c.expiry=val('newExp');if(c._snap)c._snap.expiry=c.expiry;}ev(c,'Срок резиденции обновлён: до '+fmt(c.expiry)+'. Дело закрыто.');c.cs=null;toast('Срок обновлён, дело закрыто');}
     render();
   }
-  /* Браузер показывает в списке только варианты, подходящие к введённому тексту.
-     Поэтому при входе в поле очищаем его (прежнее значение остаётся подсказкой) и возвращаем, если ничего не выбрано. */
-  document.addEventListener('focusin',function(e){var t=e.target;
-    if(t.dataset&&(t.dataset.enum||t.dataset.sugg)&&t.dataset.prev===undefined&&t.value){t.dataset.prev=t.value;t.dataset.ph0=t.placeholder;t.placeholder=t.value;t.value='';delete t.dataset.touched;}});
-  document.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.sugg&&t.dataset.prev!==undefined)t.dataset.touched='1';});
-  document.addEventListener('focusout',function(e){var t=e.target;
-    if(t.dataset&&(t.dataset.enum||t.dataset.sugg)&&t.dataset.prev!==undefined){if(t.value===''&&!t.dataset.touched)t.value=t.dataset.prev;t.placeholder=t.dataset.ph0||PH;delete t.dataset.prev;delete t.dataset.ph0;delete t.dataset.touched;}});
   document.addEventListener('change',function(e){
     var c=typeof active==='number'?byId(active):null;if(!c)return;
     if(skipChange)return;
