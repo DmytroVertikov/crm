@@ -458,7 +458,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       dlOpts(id,[NONE].concat(list.map(lab)))+(sel&&sel.note?'<span class="hint">'+esc(sel.note)+'</span>':'')+'</label>';
   }
   function suggF(id,label,items,val,cls,ph){
-    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" list="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
+    return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" data-sugg="1" list="dl_'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph||PH)+'" autocomplete="off">'+dlOpts(id,items)+'</label>';
   }
   function txtF(id,label,val,ph,cls){return '<label class="'+(cls||'')+'">'+label+'<input class="inl" id="'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"></label>';}
   function pick(list,txt){
@@ -593,9 +593,10 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   /* Браузер показывает в списке только варианты, подходящие к введённому тексту.
      Поэтому при входе в поле очищаем его (прежнее значение остаётся подсказкой) и возвращаем, если ничего не выбрано. */
   document.addEventListener('focusin',function(e){var t=e.target;
-    if(t.dataset&&t.dataset.enum&&t.dataset.prev===undefined&&t.value){t.dataset.prev=t.value;t.placeholder=t.value;t.value='';}});
+    if(t.dataset&&(t.dataset.enum||t.dataset.sugg)&&t.dataset.prev===undefined&&t.value){t.dataset.prev=t.value;t.dataset.ph0=t.placeholder;t.placeholder=t.value;t.value='';delete t.dataset.touched;}});
+  document.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.sugg&&t.dataset.prev!==undefined)t.dataset.touched='1';});
   document.addEventListener('focusout',function(e){var t=e.target;
-    if(t.dataset&&t.dataset.enum&&t.dataset.prev!==undefined){if(t.value==='')t.value=t.dataset.prev;t.placeholder=PH;delete t.dataset.prev;}});
+    if(t.dataset&&(t.dataset.enum||t.dataset.sugg)&&t.dataset.prev!==undefined){if(t.value===''&&!t.dataset.touched)t.value=t.dataset.prev;t.placeholder=t.dataset.ph0||PH;delete t.dataset.prev;delete t.dataset.ph0;delete t.dataset.touched;}});
   document.addEventListener('change',function(e){
     var c=typeof active==='number'?byId(active):null;if(!c)return;
     var id=e.target.id;
