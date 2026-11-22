@@ -68,3 +68,19 @@ create table if not exists public.app_settings (
   updated_at timestamptz not null default now()
 );
 alter table public.app_settings enable row level security;
+
+-- Лента дела: единый журнал «дата, действие, комментарий» (одна лента на клиента, на все его дела).
+-- Статус дела, шаги и напоминания приложение считает из этих записей.
+-- Таблица notes устарела (оставлена для истории); cases пишется как расчётная строка для v_deadlines.
+create table if not exists public.case_log (
+  id bigint generated always as identity primary key,
+  client_id bigint not null references public.clients(id) on delete cascade,
+  entry_date date not null,
+  action text not null,              -- podacha | zapros | otvet | reshenie | zvonok | primech | zakrytie
+  comment text not null default '',
+  due_date date,                     -- для zapros: ответить до
+  result text,                       -- для reshenie: Одобрено / Отказ / ...
+  case_type text                     -- для podacha: тип дела
+);
+create index if not exists idx_case_log_client on public.case_log(client_id, entry_date);
+alter table public.case_log enable row level security;

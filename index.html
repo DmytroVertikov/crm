@@ -222,6 +222,25 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   .scroll{padding:16px}.savebar{padding:12px 16px}
 }
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+.lf{padding:12px 14px;margin-bottom:12px}
+.lf.editing{border-color:var(--accent)}
+.lfrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:8px}
+.lfrow:last-child{margin-bottom:0}
+.lfrow label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.lfrow textarea{flex:1;min-width:220px;resize:vertical;min-height:64px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;color:inherit}
+.lfbtn{gap:8px}
+.lelist{display:flex;flex-direction:column}
+.le{display:grid;grid-template-columns:96px 150px 1fr auto;gap:10px;align-items:start;padding:10px 4px;border-top:1px solid var(--line)}
+.le:first-child{border-top:0}
+.led{font-size:13px;color:var(--muted);padding-top:2px}
+.let{white-space:pre-wrap;word-break:break-word;min-width:0}
+.lem{font-size:13px;color:var(--muted);margin-bottom:2px}
+.leb{display:flex;gap:4px}
+@media (max-width:760px){.le{grid-template-columns:1fr auto}.le .led,.le .lea,.le .let{grid-column:1}.le .leb{grid-column:2;grid-row:1}}
+.ib{background:none;border:1px solid var(--line);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--muted);font:inherit;line-height:1}
+.ib:hover{color:var(--text,inherit);border-color:var(--accent)}
+.ib.del:hover{color:#c0392b;border-color:#c0392b}
+.btn.ghost{background:transparent;color:inherit;border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -279,6 +298,62 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   var TYPES=['Первичная подача','Продление','Модификация','Воссоединение семьи'];
   var nextNum=1042,nextId=20;
   function N(t,text,d){return {t:t,text:text,date:off(d)};}
+  /* ===== Лента дела: единый журнал «дата, действие, комментарий» =====
+     Статус дела, шаги и напоминания считаются из записей ленты (c.cs — только расчётный кэш). */
+  var ACTS=[{k:'podacha',t:'Подача'},{k:'zapros',t:'Запрос документов'},{k:'otvet',t:'Ответ на запрос'},{k:'reshenie',t:'Решение'},{k:'zvonok',t:'Звонок'},{k:'primech',t:'Примечание'}];
+  var ACT_NAME={podacha:'Подача',zapros:'Запрос документов',otvet:'Ответ на запрос',reshenie:'Решение',zvonok:'Звонок',primech:'Примечание',zakrytie:'Дело закрыто'};
+  var ACT_PILL={podacha:'info',zapros:'warn',otvet:'info',reshenie:'good',zvonok:'none',primech:'none',zakrytie:'good'};
+  var RESULTS=['Одобрено','Отказ','Нужны дополнительные документы'];
+  function newLid(){return 'l'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+  function mkLog(act,date,text,x){var e={id:newLid(),date:date,act:act,text:text||''};if(x)for(var k in x)if(x[k]!=null&&x[k]!=='')e[k]=x[k];return e;}
+  function parseRU(tx){var m=(tx||'').match(/(\d{2})\.(\d{2})\.(\d{4})/);return m?m[3]+'-'+m[2]+'-'+m[1]:null;}
+  function sortedLog(c){return c.log.map(function(e,i){return {e:e,i:i};}).sort(function(a,b){return a.e.date<b.e.date?-1:a.e.date>b.e.date?1:a.i-b.i;}).map(function(x){return x.e;});}
+  function caseOf(c){
+    var cs=null;
+    sortedLog(c).forEach(function(e){
+      if(e.act==='podacha'){cs={type:e.type||TYPES[0],filed:e.date,reqRecv:null,reqDue:null,answered:null,result:null};}
+      else if(e.act==='zakrytie'){cs=null;}
+      else if(cs&&!cs.result){
+        if(e.act==='zapros'){cs.reqRecv=e.date;cs.reqDue=e.due||e.date;cs.answered=null;}
+        else if(e.act==='otvet'){cs.answered=e.date;}
+        else if(e.act==='reshenie'){cs.result={text:e.res||RESULTS[0],date:e.date};}
+      }
+    });
+    return cs;
+  }
+  /* Перенос старого формата (дело c.cs + примечания c.notes) в ленту */
+  function migrateLog(c){
+    var L=[],k=c.cs||null;
+    (c.notes||[]).forEach(function(n){
+      var tx=n.text||'',d=n.date||iso(TODAY);
+      if(n.t!=='event'){L.push(mkLog('primech',d,tx));return;}
+      if(/^Срок резиденции обновлён/.test(tx)){L.push(mkLog('zakrytie',d,tx));return;}
+      if(/^Тип дела изменён/.test(tx))return;
+      if(/^(Открыто дело|Пришёл запрос|Ответ на запрос|Решение: )/.test(tx)){
+        if(k)return;
+        if(/^Открыто дело/.test(tx)){var mt=tx.match(/Открыто дело: (.*?), подано/);L.push(mkLog('podacha',d,'',{type:mt?mt[1]:TYPES[0]}));}
+        else if(/^Пришёл запрос/.test(tx))L.push(mkLog('zapros',d,'',{due:parseRU(tx)||d}));
+        else if(/^Ответ на запрос/.test(tx))L.push(mkLog('otvet',d,''));
+        else L.push(mkLog('reshenie',d,'',{res:tx.replace(/^Решение: /,'').replace(/\.$/,'')}));
+        return;
+      }
+      L.push(mkLog('primech',d,tx));
+    });
+    if(k){
+      L.push(mkLog('podacha',k.filed,'',{type:k.type}));
+      if(k.reqRecv)L.push(mkLog('zapros',k.reqRecv,'',{due:k.reqDue||k.reqRecv}));
+      if(k.answered)L.push(mkLog('otvet',k.answered,''));
+      if(k.result)L.push(mkLog('reshenie',k.result.date,'',{res:k.result.text}));
+    }
+    return L;
+  }
+  function normClient(c){
+    if(!Array.isArray(c.log))c.log=migrateLog(c);
+    delete c.notes;
+    c.log=c.log.filter(function(e){return e&&e.act;});
+    c.log.forEach(function(e){e.id=e.id?String(e.id):newLid();if(!e.date)e.date=iso(TODAY);e.text=e.text||'';});
+    c.cs=caseOf(c);
+  }
   var clients=[
     {id:1,num:1031,name:'Иванова Мария',phone:'+34 611 000 101',expiry:off(75),cs:{type:'Продление',filed:off(-40),reqRecv:off(-12),reqDue:off(3),answered:null,result:null},notes:[N('note','Клиентка прислала новый padrón, нужно приложить к ответу.',-11),N('note','Договорились созвониться в среду по списку документов.',-4)]},
     {id:2,num:1034,name:'Петров Алексей',phone:'+34 611 000 102',expiry:null,cs:{type:'Первичная подача',filed:off(-95),reqRecv:null,reqDue:null,answered:null,result:null},notes:[N('note','Подали через сеть. Ведомство пока молчит.',-95)]},
@@ -291,7 +366,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     {id:9,num:1008,name:'Фёдорова Ксения',phone:'+34 611 000 109',expiry:off(400),cs:{type:'Продление',filed:off(-150),reqRecv:off(-100),reqDue:off(-85),answered:off(-90),result:{text:'Одобрено',date:off(-10)}},notes:[]},
     {id:10,num:1040,name:'Тихонов Павел',phone:'+34 611 000 110',expiry:off(150),cs:{type:'Первичная подача',filed:off(-30),reqRecv:off(-3),reqDue:off(9),answered:null,result:null},notes:[]}
   ];
-  clients.forEach(function(c){c.next='';c.draft='';c.goal='';c.nextNote='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.nat='RU';c.nie='';c.phones2=[];});
+  clients.forEach(function(c){c.next='';c.draft='';c.goal='';c.nextNote='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.nat='RU';c.nie='';c.phones2=[];normClient(c);});
   var sent={},tabs=[],active='today',filter='all',adding=false;
 
   /* Storage: this browser only. Backup file moves data between devices. */
@@ -301,12 +376,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   var EDIT_ID=/^(fName|fPhone|fGoal|fEstado|fSitu|fTipo|fDoc|fOtro|fNextNote|fNat|fNie|fExp|nextIn|fPh2_\d+)$/;
   function beginEdit(c){if(!c._snap){var o={};EF.forEach(function(k){o[k]=k==='phones2'?(c[k]||[]).slice():c[k];});c._snap=o;}}
   function isDirty(c){return !!c._snap&&EF.some(function(k){return JSON.stringify(c[k])!==JSON.stringify(c._snap[k]);});}
-  function persisted(c){if(!c._snap)return c;var o={};for(var k in c)if(k!=='_snap')o[k]=c[k];EF.forEach(function(k){o[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});return o;}
+  function persisted(c){var o={};for(var k in c)if(k.charAt(0)!=='_'&&k!=='cs')o[k]=c[k];if(c._snap)EF.forEach(function(k){o[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});return o;}
   function snapshot(){return JSON.stringify({v:1,demo:demo,clients:clients.map(persisted),sent:sent,nextNum:nextNum,nextId:nextId});}
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
     clients=o.clients.filter(function(c){return c&&Number.isInteger(+c.id);});clients.forEach(function(c){c.id=+c.id;c.num=+c.num||0;});sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
-    clients.forEach(function(c){c.notes=c.notes||[];c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
+    clients.forEach(function(c){normClient(c);c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
     tabs=[];active='today';filter='all';
   }
   function save(){try{localStorage.setItem(KEY,snapshot());storeOk=true;savedAt=new Date();}catch(e){storeOk=false;}remoteSoon();}
@@ -328,25 +403,25 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function toRows(c){
     c=persisted(c);
     var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:c.nextNote||'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
-    var k=c.cs?{client_id:c.id,type:c.cs.type,filed:c.cs.filed,req_received:c.cs.reqRecv||null,req_due:c.cs.reqDue||null,
-      answered:c.cs.answered||null,result_text:c.cs.result?c.cs.result.text:null,result_date:c.cs.result?c.cs.result.date:null}:null;
-    var n=c.notes.map(function(x){return {client_id:c.id,kind:x.t,text:x.text,date:x.date};});
+    var cs=caseOf(c);
+    var k=cs?{client_id:c.id,type:cs.type,filed:cs.filed,req_received:cs.reqRecv||null,req_due:cs.reqDue||null,
+      answered:cs.answered||null,result_text:cs.result?cs.result.text:null,result_date:cs.result?cs.result.date:null}:null;
+    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,case_type:e.type||null};});
     return {cl:cl,k:k,n:n};
   }
-  function fromRemote(cl,ks,ns){
+  function fromRemote(cl,lg){
     var out=cl.map(function(r){
-      var k=ks.filter(function(z){return z.client_id===r.id;})[0];
       return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,next:r.next_step||'',draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nextNote:r.next_note||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
-        cs:k?{type:k.type,filed:k.filed,reqRecv:k.req_received,reqDue:k.req_due,answered:k.answered,
-          result:k.result_text?{text:k.result_text,date:k.result_date}:null}:null,
-        notes:ns.filter(function(z){return z.client_id===r.id;}).sort(function(a,b){return a.id-b.id;})
-          .map(function(z){return {t:z.kind,text:z.text,date:z.date};})};
+        log:lg.filter(function(z){return z.client_id===r.id;}).sort(function(x,y){return x.id-y.id;}).map(function(z){
+          var e={id:'r'+z.id,date:z.entry_date,act:z.action,text:z.comment||''};
+          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.case_type)e.type=z.case_type;return e;})};
     });
+    out.forEach(normClient);
     return out;
   }
   function remoteLoad(){
-    return Promise.all([sb('clients?select=*&order=id'),sb('cases?select=*&order=id'),sb('notes?select=*&order=id')]).then(function(a){
-      clients=fromRemote(a[0],a[1],a[2]);
+    return Promise.all([sb('clients?select=*&order=id'),sb('case_log?select=*&order=id')]).then(function(a){
+      clients=fromRemote(a[0],a[1]);
       nextId=clients.reduce(function(m,c){return Math.max(m,c.id+1);},1);
       nextNum=clients.reduce(function(m,c){return Math.max(m,c.num+1);},1001);
       remote.last={};clients.forEach(function(c){remote.last[c.id]=JSON.stringify(toRows(c));});
@@ -365,8 +440,8 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
         return sb('clients',{method:'POST',prefer:'resolution=merge-duplicates,return=minimal',body:[rows.cl]})
           .then(function(){return sb('cases?client_id=eq.'+(+c.id),{method:'DELETE'});})
           .then(function(){return rows.k?sb('cases',{method:'POST',body:[rows.k]}):null;})
-          .then(function(){return sb('notes?client_id=eq.'+(+c.id),{method:'DELETE'});})
-          .then(function(){return rows.n.length?sb('notes',{method:'POST',body:rows.n}):null;})
+          .then(function(){return sb('case_log?client_id=eq.'+(+c.id),{method:'DELETE'});})
+          .then(function(){return rows.n.length?sb('case_log',{method:'POST',body:rows.n}):null;})
           .then(function(){remote.last[c.id]=sig;});
       });
     });
@@ -401,7 +476,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     return null;
   }
   function stepOf(c){if(c.next)return {t:c.next,k:'ok'};return derived(c)||{t:'нет шага',k:'none'};}
-  function lastDate(c){var d=c.notes.length?c.notes[c.notes.length-1].date:(c.cs?c.cs.filed:null);return d;}
+  function lastDate(c){var L=sortedLog(c);return L.length?L[L.length-1].date:null;}
 
   function notes(){
     var out=[];
@@ -423,7 +498,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function urgentCount(){return notes().filter(function(x){return x.sev==='crit'&&!sent[x.id];}).length;}
 
   function toast(t){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},1800);}
-  function ev(c,text){c.notes.push({t:'event',text:text,date:iso(TODAY)});}
   function openTab(id){if(tabs.indexOf(id)<0)tabs.push(id);active=id;render();}
 
   /* Left: filters and list */
@@ -569,29 +643,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var k=c.cs,st=status(c),s=stage(c),dv=derived(c),h='';
     h+=headHtml(c);
     h+='<div class="meta"><span class="pill '+st.k+'">'+esc(st.t)+'</span>';
-    if(k)h+='<label>Тип дела <select class="inl" id="cType">'+TYPES.map(function(t){return '<option'+(t===k.type?' selected':'')+'>'+t+'</option>';}).join('')+'</select></label>';
     h+='</div>';
     h+=cardFields(c,dv);
-    h+='<div class="lower"><div class="card lower-panel">'+remindersHtml(c)+'</div><div class="card lower-panel"><h3 class="sec">Дело</h3>';
-    if(!k){
-      h+='<div class="inline"><label>Открыть дело<select class="inl" id="oType">'+TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></label><label>Дата подачи<input class="inl" type="date" id="oFiled" value="'+iso(TODAY)+'"></label><button class="btn small" data-act="open" type="button">Открыть дело</button></div>';
-    }else{
-      h+='<ol class="steps">'+stp('Документы поданы',k.filed,true,false,'');
-      h+=stp('Пришёл запрос ведомства'+(k.reqRecv?', ответить до '+fmt(k.reqDue):''),k.reqRecv,!!k.reqRecv,s==='wait',
-        s==='wait'?'<div class="inline"><label>Дата запроса<input class="inl" type="date" id="rRecv" value="'+iso(TODAY)+'"></label><label>Ответить до<input class="inl" type="date" id="rDue" value="'+off(10)+'"></label><button class="btn small" data-act="req" type="button">Записать</button></div><div class="small-t" style="margin-top:4px">Запроса может не быть. Тогда сразу отметьте решение.</div>':'');
-      h+=stp('Ответ на запрос отправлен',k.answered,!!k.answered,s==='answer',
-        s==='answer'?'<div class="inline"><label>Дата ответа<input class="inl" type="date" id="aDate" value="'+iso(TODAY)+'"></label><button class="btn small" data-act="ans" type="button">Записать</button></div>':'');
-      h+=stp('Решение получено'+(k.result?': '+k.result.text:''),k.result&&k.result.date,!!k.result,s==='decision'||s==='wait',
-        !k.result&&(s==='decision'||s==='wait')?'<div class="inline"><label>Результат<select class="inl" id="dRes"><option>Одобрено</option><option>Отказ</option><option>Нужны дополнительные документы</option></select></label><label>Дата<input class="inl" type="date" id="dDate" value="'+iso(TODAY)+'"></label><button class="btn small" data-act="res" type="button">Записать</button></div>':'');
-      h+='</ol>';
-      if(k.result&&k.result.text==='Одобрено')h+='<div class="inline"><label>Новый срок резиденции<input class="inl" type="date" id="newExp" value="'+(c.expiry||'')+'"></label><button class="btn small" data-act="exp" type="button">Обновить срок и закрыть дело</button></div>';
-    }
-    h+='</div></div>';
+    h+='<div class="lower"><div class="card lower-panel">'+remindersHtml(c)+'</div><div class="card lower-panel">'+caseSummary(c)+'</div></div>';
     var rn=notes().filter(function(x){return x.cid===c.id&&x.kind==='client';})[0];
     if(rn){h+='<h3 class="sec">Напоминание клиенту</h3>'+feedCard(rn);}
-    h+='<h3 class="sec">История и примечания</h3>';
-    h+=c.notes.length?c.notes.map(function(n){return '<div class="card'+(n.t==='event'?' ev':'')+'"><div class="h"><span>'+(n.t==='event'?'Событие':'Примечание')+'</span><span>'+fmt(n.date)+'</span></div>'+esc(n.text)+'</div>';}).join(''):'<div class="small-t">Пока пусто. Пишите заметки внизу.</div>';
-    h+='<div class="notecomp"><textarea id="noteIn" placeholder="Добавить примечание… (Ctrl+Enter, чтобы сохранить)" aria-label="Примечание">'+esc(c.draft||'')+'</textarea><button class="btn" id="noteBtn" type="button">Добавить</button></div>';
+    h+=logHtml(c);
     $('main').innerHTML=h;
     var m=$('main');m.scrollTop=m.scrollTop;
   }
@@ -620,7 +677,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
     if(e.key==='Enter'){var v=e.target.value.trim();if(!v)return;
-      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,notes:[],next:'',draft:'',goal:'',nextNote:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[]};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
+      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],next:'',draft:'',goal:'',nextNote:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[]};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
@@ -823,11 +880,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function act(a){
     var c=byId(active);if(!c)return;
     if(a==='addphone'){beginEdit(c);c.phones2.push('');render();var el=$('fPh2_'+(c.phones2.length-1));if(el)el.focus();return;}
-    if(a==='open'){c.cs={type:val('oType'),filed:val('oFiled')||iso(TODAY),reqRecv:null,reqDue:null,answered:null,result:null};ev(c,'Открыто дело: '+c.cs.type+', подано '+fmt(c.cs.filed)+'.');toast('Дело открыто');}
-    if(a==='req'){if(!val('rRecv')||!val('rDue')){toast('Укажите обе даты');return;}c.cs.reqRecv=val('rRecv');c.cs.reqDue=val('rDue');ev(c,'Пришёл запрос ведомства. Ответить до '+fmt(c.cs.reqDue)+'.');toast('Запрос записан, напоминание создано');}
-    if(a==='ans'){c.cs.answered=val('aDate')||iso(TODAY);ev(c,'Ответ на запрос отправлен '+fmt(c.cs.answered)+'.');toast('Ответ записан');}
-    if(a==='res'){c.cs.result={text:val('dRes'),date:val('dDate')||iso(TODAY)};ev(c,'Решение: '+c.cs.result.text+'.');toast('Решение записано');}
-    if(a==='exp'){if(val('newExp')){c.expiry=val('newExp');if(c._snap)c._snap.expiry=c.expiry;}ev(c,'Срок резиденции обновлён: до '+fmt(c.expiry)+'. Дело закрыто.');c.cs=null;toast('Срок обновлён, дело закрыто');}
+    if(a==='exp'){if(val('newExp')){c.expiry=val('newExp');if(c._snap)c._snap.expiry=c.expiry;}c.log.push(mkLog('zakrytie',iso(TODAY),'Срок резиденции обновлён: до '+fmt(c.expiry)+'.'));c.cs=caseOf(c);toast('Срок обновлён, дело закрыто');}
     render();
   }
   document.addEventListener('change',function(e){
@@ -835,7 +888,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(skipChange)return;
     var id=e.target.id;
     if(EDIT_ID.test(id))beginEdit(c);
-    if(id==='cType'){c.cs.type=e.target.value;ev(c,'Тип дела изменён: '+c.cs.type+'.');render();}
+    if(/^l[fe](Date|Act|Type|Due|Res)$/.test(id))lfChange(c,id,e.target.value);
     if(id==='nextIn'){c.next=e.target.value.trim();render();}
     if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
     if(id==='fPhone'){c.phone=e.target.value.trim();render();}
@@ -860,11 +913,89 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   });
   document.addEventListener('input',function(e){var t=e.target;
     if(t.id==='noteIn'){var c=byId(active);if(c)c.draft=t.value;}
+    else if(t.id==='leText'){var c2=byId(active);if(c2&&c2._ed)c2._ed.text=t.value;}
     else if(EDIT_ID.test(t.id))updateSaveBar(true);});
   document.addEventListener('focusout',function(e){if(EDIT_ID.test(e.target.id))updateSaveBar();});
-  function addNote(){var c=byId(active),v=$('noteIn').value.trim();if(!c||!v)return;c.notes.push({t:'note',text:v,date:iso(TODAY)});c.draft='';render();var m=$('main');m.scrollTop=m.scrollHeight;$('noteIn').focus();}
-  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#noteBtn'))addNote();});
-  document.addEventListener('keydown',function(e){if(e.target.id==='noteIn'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addNote();}});
+  /* ===== Интерфейс ленты ===== */
+  function lf(c){if(!c._lf)c._lf={date:iso(TODAY),act:'primech',type:TYPES[0],due:off(10),res:RESULTS[0]};return c._lf;}
+  function optsHtml(list,sel){return list.map(function(o){var v=typeof o==='string'?o:o.k,t=typeof o==='string'?o:o.t;return '<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>'+esc(t)+'</option>';}).join('');}
+  function actFields(p,f){
+    var h='';
+    if(f.act==='podacha')h+='<label>Тип дела<select class="inl" id="'+p+'Type">'+optsHtml(TYPES,f.type)+'</select></label>';
+    if(f.act==='zapros')h+='<label>Ответить до<input class="inl" type="date" id="'+p+'Due" value="'+esc(f.due||'')+'"></label>';
+    if(f.act==='reshenie')h+='<label>Результат<select class="inl" id="'+p+'Res">'+optsHtml(RESULTS,f.res)+'</select></label>';
+    return h;
+  }
+  function logForm(c){
+    var f=lf(c);
+    return '<div class="card lf"><div class="lfrow"><label>Дата<input class="inl" type="date" id="lfDate" value="'+esc(f.date)+'"></label>'+
+      '<label>Действие<select class="inl" id="lfAct">'+optsHtml(ACTS,f.act)+'</select></label>'+actFields('lf',f)+'</div>'+
+      '<div class="lfrow"><textarea id="noteIn" placeholder="Комментарий… (Ctrl+Enter, чтобы добавить)" aria-label="Комментарий">'+esc(c.draft||'')+'</textarea><button class="btn" id="noteBtn" type="button">Добавить</button></div></div>';
+  }
+  function entryHtml(c,e){
+    if(c._ed&&c._ed.id===e.id){
+      var d=c._ed;
+      return '<div class="card lf editing"><div class="lfrow"><label>Дата<input class="inl" type="date" id="leDate" value="'+esc(d.date)+'"></label>'+
+        '<label>Действие<select class="inl" id="leAct">'+optsHtml(ACTS.concat([{k:'zakrytie',t:'Дело закрыто'}]),d.act)+'</select></label>'+actFields('le',d)+'</div>'+
+        '<div class="lfrow"><textarea id="leText" aria-label="Комментарий">'+esc(d.text)+'</textarea></div>'+
+        '<div class="lfrow lfbtn"><button class="btn small" type="button" data-la="save">Сохранить запись</button><button class="btn small ghost" type="button" data-la="cancel">Отмена</button></div></div>';
+    }
+    var meta=[];
+    if(e.act==='podacha'&&e.type)meta.push('Тип дела: '+e.type);
+    if(e.act==='zapros'&&e.due)meta.push('ответить до '+fmt(e.due));
+    if(e.act==='reshenie'&&e.res)meta.push(e.res);
+    return '<div class="le"><div class="led">'+fmt(e.date)+'</div><div class="lea"><span class="pill '+(ACT_PILL[e.act]||'none')+'">'+esc(ACT_NAME[e.act]||e.act)+'</span></div>'+
+      '<div class="let">'+(meta.length?'<div class="lem">'+esc(meta.join(' · '))+'</div>':'')+esc(e.text)+'</div>'+
+      '<div class="leb"><button class="ib" type="button" data-la="edit" data-lid="'+esc(e.id)+'" aria-label="Изменить запись" title="Изменить">✎</button><button class="ib del" type="button" data-la="del" data-lid="'+esc(e.id)+'" aria-label="Удалить запись" title="Удалить">×</button></div></div>';
+  }
+  function logHtml(c){
+    var h='<h3 class="sec">История дела</h3>'+logForm(c),L=sortedLog(c).reverse();
+    h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>';
+    return h;
+  }
+  function lfChange(c,id,v){
+    var st=id.charAt(1)==='f'?lf(c):c._ed;if(!st)return;
+    var k=id.slice(2);
+    if(k==='Date')st.date=v;else if(k==='Act'){st.act=v;render();return;}else if(k==='Type')st.type=v;else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
+  }
+  function addEntry(){
+    var c=byId(active);if(!c)return;var f=lf(c),txt=$('noteIn').value.trim();
+    if(!f.date){toast('Укажите дату');return;}
+    if(f.act==='primech'&&!txt){toast('Напишите комментарий');return;}
+    if(f.act==='zapros'&&!f.due){toast('Укажите, до какого числа нужно ответить');return;}
+    var x={};if(f.act==='podacha')x.type=f.type;if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
+    c.log.push(mkLog(f.act,f.date,txt,x));c.cs=caseOf(c);c.draft='';c._lf=null;render();toast('Запись добавлена');
+    var n=$('noteIn');if(n)n.focus();
+  }
+  function logAction(a,lid){
+    var c=byId(active);if(!c)return;
+    var e=c.log.filter(function(z){return z.id===lid;})[0];
+    if(a==='start'){lf(c).act='podacha';render();var n=$('noteIn');if(n)n.focus();return;}
+    if(a==='edit'&&e){c._ed={id:e.id,date:e.date,act:e.act,text:e.text||'',type:e.type||TYPES[0],due:e.due||e.date,res:e.res||RESULTS[0]};render();return;}
+    if(a==='cancel'){c._ed=null;render();return;}
+    if(a==='save'&&c._ed){
+      var d=c._ed,t=c.log.filter(function(z){return z.id===d.id;})[0];if(!t)return;
+      if(!d.date){toast('Укажите дату');return;}
+      if(d.act==='zapros'&&!d.due){toast('Укажите, до какого числа нужно ответить');return;}
+      t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.type;delete t.due;delete t.res;
+      if(d.act==='podacha')t.type=d.type;if(d.act==='zapros')t.due=d.due;if(d.act==='reshenie')t.res=d.res;
+      c._ed=null;c.cs=caseOf(c);render();toast('Запись сохранена');return;}
+    if(a==='del'&&e){if(!confirm('Удалить запись «'+(ACT_NAME[e.act]||e.act)+'» от '+fmt(e.date)+'?'))return;
+      c.log=c.log.filter(function(z){return z.id!==lid;});if(c._ed&&c._ed.id===lid)c._ed=null;c.cs=caseOf(c);render();toast('Запись удалена');}
+  }
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-la]');if(b&&typeof active==='number')logAction(b.getAttribute('data-la'),b.getAttribute('data-lid'));});
+  function caseSummary(c){
+    var k=c.cs,s=stage(c),h='<h3 class="sec">Дело</h3>';
+    if(!k)return h+'<div class="small-t">Дело не открыто. Чтобы открыть его, добавьте в ленте запись «Подача».</div><div style="margin-top:8px"><button class="btn small" type="button" data-la="start">Добавить «Подачу»</button></div>';
+    h+='<ol class="steps">'+stp('Документы поданы',k.filed,true,false,'');
+    h+=stp('Пришёл запрос ведомства'+(k.reqRecv?', ответить до '+fmt(k.reqDue):''),k.reqRecv,!!k.reqRecv,s==='wait','');
+    h+=stp('Ответ на запрос отправлен',k.answered,!!k.answered,s==='answer','');
+    h+=stp('Решение получено'+(k.result?': '+k.result.text:''),k.result&&k.result.date,!!k.result,s==='decision'||s==='wait','')+'</ol>';
+    if(k.result&&k.result.text==='Одобрено')h+='<div class="inline"><label>Новый срок резиденции<input class="inl" type="date" id="newExp" value="'+(c.expiry||'')+'"></label><button class="btn small" data-act="exp" type="button">Обновить срок и закрыть дело</button></div>';
+    return h;
+  }
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#noteBtn'))addEntry();});
+  document.addEventListener('keydown',function(e){if(e.target.id==='noteIn'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addEntry();}});
 
   $('expBtn').addEventListener('click',function(){
     try{var b=new Blob([snapshot()],{type:'application/json'}),a=document.createElement('a');

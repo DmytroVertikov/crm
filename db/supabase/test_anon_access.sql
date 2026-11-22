@@ -10,3 +10,4 @@ create policy test_anon_all on public.notes   for all to anon using (true) with 
 
 -- ВРЕМЕННО, как и выше: открытый доступ к настройкам для демо.
 create policy test_anon_all on public.app_settings for all to anon using (true) with check (true);
+create policy test_anon_all on public.case_log for all to anon using (true) with check (true);
