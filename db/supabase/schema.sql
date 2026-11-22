@@ -60,3 +60,11 @@ create view public.v_deadlines with (security_invoker = true) as
 alter table public.clients enable row level security;
 alter table public.cases   enable row level security;
 alter table public.notes   enable row level security;
+
+-- Справочник опций (вкладка «Справочник»): один ряд key='dictionary', value = JSON со всеми списками.
+create table if not exists public.app_settings (
+  key        text primary key,
+  value      jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.app_settings enable row level security;

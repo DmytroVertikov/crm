@@ -72,6 +72,36 @@ button,input,select,textarea{font:inherit;color:inherit}
 .cbo{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1.35}
 .cbo:hover,.cbo.hi{background:var(--accent-soft)}
 .cbo.on{font-weight:600;color:var(--accent)}
+.dh{margin:4px 0 4px;font-size:22px}
+.dsub{margin:0 0 14px;color:var(--muted);font-size:14px}
+.dseg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.dsb{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer}
+.dsb[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.dsb .dn{opacity:.7;font-size:12px;margin-left:4px}
+.dcard{padding:14px 16px}
+.dtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.dsortl{margin-left:12px;font-size:13px;color:var(--muted)}
+.dreset{margin-left:auto}
+.dnote{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.drow{display:grid;grid-template-columns:26px 62px minmax(160px,1fr) minmax(160px,1fr) 90px 34px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.drow.dep{grid-template-columns:26px 62px minmax(150px,1fr) minmax(150px,1fr) 150px 90px 34px}
+.drow.dhead{font-size:12.5px;color:var(--muted);border-top:0;padding-top:0}
+.drow.over{box-shadow:0 -2px 0 var(--accent) inset;background:var(--accent-soft)}
+.drow.dragging{opacity:.5}
+.dgrip{cursor:grab;color:var(--muted);text-align:center;font-size:18px;user-select:none}
+.dmv{display:flex;gap:4px}
+.ib{width:28px;height:28px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;font-size:14px;line-height:1}
+.ib:hover:not(:disabled){background:var(--accent-soft)}
+.ib:disabled{opacity:.35;cursor:default}
+.ib.del{color:var(--crit);font-size:18px}
+.du{font-size:13px;color:var(--muted)}
+.dempty{padding:18px 0;color:var(--muted);text-align:center;border-top:1px solid var(--line)}
+.sitsel{position:relative;font-size:13px}
+.sitsel summary{cursor:pointer;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);list-style:none}
+.sitsel .chk{position:absolute;z-index:20;top:34px;left:0;min-width:280px;max-height:260px;overflow:auto;background:var(--surface);border:1px solid var(--line2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px}
+.sitsel .chk label{display:flex;gap:8px;align-items:center;padding:4px 2px;font-size:13.5px}
+.sitsel .chkh{margin-top:6px;font-size:12px;color:var(--muted)}
+.tab .dot{color:var(--warn)}
 .savebar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid var(--line);background:var(--surface)}
 .savebar[hidden]{display:none}
 .savebar .sbmsg{margin-right:auto;font-size:14px;color:var(--warn);font-weight:600}
@@ -439,6 +469,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function renderTabs(){
     var u=urgentCount();
     var h='<button class="tab" role="tab" type="button" data-tab="today" aria-selected="'+(active==='today')+'">Сегодня'+(u?' <span class="bd">'+u+'</span>':'')+'</button>';
+    h+='<button class="tab" role="tab" type="button" data-tab="dict" aria-selected="'+(active==='dict')+'">Справочник'+(dictDirty()?' <span class="dot" title="Не сохранено">●</span>':'')+'</button>';
     tabs.forEach(function(id){var c=byId(id);h+='<span class="tab" role="tab" tabindex="0" data-tab="'+id+'" aria-selected="'+(active===id)+'">'+esc(c.name)+(isDirty(c)?' <span class="dot" title="Не сохранено">●</span>':'')+' <button class="x" type="button" data-close="'+id+'" aria-label="Закрыть вкладку">×</button></span>';});
     $('tabs').innerHTML=h;
   }
@@ -465,10 +496,10 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   /* Center: client card */
   function stp(title,date,done,now,extra){return '<li class="step '+(done?'done':now?'now':'')+'"><span class="dot">'+(done?'✓':'')+'</span><div><b>'+esc(title)+'</b><span class="small-t">'+(date?fmt(date):'ещё не было')+'</span>'+extra+'</div></li>';}
   /* Опции карточки: копия config/crm_options.json (v2.1). Править в JSON и пересобирать сюда. */
-  var OPT={"situ":[{"v":"estancia_turistica","ru":"Туристическое пребывание","es":"Estancia turística"},{"v":"estancia_estudios","ru":"Студенческое пребывание","es":"Estancia por estudios"},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal"},{"v":"solicitud_proteccion_internacional","ru":"Запрос международной защиты","es":"Solicitud de protección internacional"},{"v":"proteccion_internacional_concedida","ru":"Международная защита получена","es":"Protección internacional concedida"},{"v":"residencia_temporal","ru":"Временный ВНЖ","es":"Residencia temporal"},{"v":"residencia_larga_duracion","ru":"ПМЖ","es":"Residencia de larga duración"},{"v":"residencia_familiar_ue","ru":"ВНЖ члена семьи гражданина ЕС","es":"Residencia de familiar de ciudadano UE"},{"v":"residencia_familiar_es","ru":"ВНЖ члена семьи гражданина Испании","es":"Residencia de familiar de ciudadano español"},{"v":"residencia_circunstancias_excepcionales","ru":"ВНЖ по исключительным обстоятельствам","es":"Residencia por circunstancias excepcionales"},{"v":"irregular","ru":"Нелегальное пребывание","es":"Irregular"},{"v":"otra","ru":"Другое","es":"Otra situación"}],"tipo":[{"v":"no_lucrativa","ru":"ВНЖ без права на работу","es":"No lucrativa","sit":["residencia_temporal"]},{"v":"cuenta_ajena","ru":"Работа по найму","es":"Cuenta ajena","sit":["residencia_temporal"]},{"v":"cuenta_propia","ru":"Самозанятость","es":"Cuenta propia","sit":["residencia_temporal"]},{"v":"trabajo_temporada","ru":"Сезонная работа","es":"Trabajo de temporada","sit":["residencia_temporal"],"note":"Сезонность, макс. 9 месяцев/год, возможность повторного найма"},{"v":"reagrupacion_familiar","ru":"Воссоединение семьи","es":"Reagrupación familiar","sit":["residencia_temporal"]},{"v":"teletrabajo_internacional","ru":"Международный телеработник (цифровой кочевник)","es":"Teletrabajo de carácter internacional","sit":["residencia_temporal"],"note":"Специальный режим Ley 14/2013"},{"v":"profesional_altamente_cualificado","ru":"Высококвалифицированный специалист","es":"Profesional altamente cualificado","sit":["residencia_temporal"]},{"v":"tarjeta_azul_ue","ru":"Голубая карта ЕС","es":"Tarjeta azul-UE","sit":["residencia_temporal"]},{"v":"emprendedores","ru":"Предприниматели","es":"Emprendedores","sit":["residencia_temporal"]},{"v":"investigadores","ru":"Исследователи","es":"Investigadores","sit":["residencia_temporal"]},{"v":"traslado_intraempresarial","ru":"Внутрикорпоративный перевод","es":"Traslado intraempresarial","sit":["residencia_temporal"]},{"v":"familiar_ciudadano_es","ru":"Член семьи гражданина Испании","es":"Familiar de ciudadano español","sit":["residencia_familiar_es"]},{"v":"familiar_ciudadano_ue","ru":"Член семьи гражданина ЕС","es":"Familiar de ciudadano de la UE","sit":["residencia_familiar_ue"]},{"v":"arraigo_social","ru":"Социальное укоренение","es":"Arraigo social","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"arraigo_sociolaboral","ru":"Трудовое укоренение","es":"Arraigo sociolaboral","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"arraigo_socioformativo","ru":"Учебное укоренение","es":"Arraigo socioformativo","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"arraigo_familiar","ru":"Семейное укоренение","es":"Arraigo familiar","sit":["residencia_circunstancias_excepcionales","irregular"],"note":"Сохранён согласно Reglamento RD 1155/2024"},{"v":"arraigo_segunda_oportunidad","ru":"Укоренение «второй шанс»","es":"Arraigo de segunda oportunidad","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"razones_humanitarias","ru":"Гуманитарные причины","es":"Razones humanitarias","sit":["residencia_circunstancias_excepcionales"]},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal","sit":["proteccion_temporal"]},{"v":"larga_duracion","ru":"Долгосрочный ВНЖ","es":"Larga duración","sit":["residencia_larga_duracion"]},{"v":"larga_duracion_ue","ru":"Долгосрочный ВНЖ-ЕС","es":"Larga duración-UE","sit":["residencia_larga_duracion"]},{"v":"otra","ru":"Другое разрешение","es":"Otra autorización","sit":[]}],"estado":[{"v":"sin_iniciar","ru":"Ожидает начала (не подано)","es":"Pendiente de iniciar"},{"v":"preparacion_documentacion","ru":"Сбор и подготовка документов","es":"Preparación de documentación"},{"v":"pendiente_cita","ru":"Ожидание записи на приём","es":"Pendiente de cita"},{"v":"en_tramite","ru":"В процессе рассмотрения","es":"En trámite"},{"v":"requerimiento","ru":"Запрос дополнительных документов","es":"Requerimiento"},{"v":"resuelto_pendiente_tarjeta","ru":"Решение принято, ожидание карты (TIE)","es":"Resuelto, pendiente de tarjeta (TIE)"},{"v":"recurso_presentado","ru":"Подана жалоба","es":"Recurso presentado"},{"v":"caducado","ru":"Истёк срок","es":"Caducado"},{"v":"archivado","ru":"Архив / закрыто","es":"Archivado / cerrado"}],"doc":[{"v":"tie_general","ru":"TIE (карта иностранца)","es":"TIE (tarjeta de identidad de extranjero)"},{"v":"tie_brexit","ru":"Карта по Соглашению о выходе (Brexit)","es":"Tarjeta por Acuerdo de Retirada (Brexit)"},{"v":"certificado_registro_ue","ru":"Сертификат регистрации гражданина ЕС","es":"Certificado de registro de ciudadano de la UE"},{"v":"resguardo_solicitud","ru":"Подтверждение подачи заявления","es":"Resguardo de solicitud"},{"v":"resolucion_favorable","ru":"Положительное решение","es":"Resolución favorable"},{"v":"autorizacion_regreso","ru":"Разрешение на возвращение","es":"Autorización de regreso"},{"v":"pasaporte","ru":"Паспорт","es":"Pasaporte"},{"v":"visado","ru":"Виза","es":"Visado"},{"v":"doc_solicitante_proteccion","ru":"Документ заявителя на международную защиту","es":"Documento de solicitante de protección internacional"},{"v":"cedula_inscripcion","ru":"Удостоверение регистрации (для лиц без документов)","es":"Cédula de inscripción"},{"v":"otro","ru":"Другое","es":"Otro"}],"name":{"situ":"Административный статус","tipo":"Основание / тип разрешения","estado":"Стадия рассмотрения дела","doc":"Тип подтверждающего документа"},"goal":["Получить первый ВНЖ (Obtener residencia inicial)","Продлить ВНЖ (Renovar residencia)","Получить ПМЖ (Obtener residencia de larga duración)","Получить гражданство Испании (Obtener nacionalidad española)","Легализоваться (выйти из нелегального статуса) (Regularizar situación (salir de irregular))","Получить защиту (убежище/временная) (Obtener protección internacional / temporal)","Оспорить отказ (защитить пребывание) (Recurrir denegación (defender estancia))"],"next":["Собрать документы (Recopilar documentación)","Записаться на приём (Solicitar cita previa)","Подать дело (Presentar expediente)","Ожидать решения (действий не требуется) (Esperar resolución (sin acción del cliente))","Донести документы (по запросу) (Entregar documentos adicionales (requerimiento))","Сдать отпечатки пальцев (TIE) (Cita para toma de huellas (TIE))","Забрать карту (TIE) (Recoger tarjeta (TIE))","Подготовить апелляцию (Preparar recurso de alzada)"]};
+  var OPT={"situ":[{"v":"estancia_turistica","ru":"Туристическое пребывание","es":"Estancia turística"},{"v":"estancia_estudios","ru":"Студенческое пребывание","es":"Estancia por estudios"},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal"},{"v":"solicitud_proteccion_internacional","ru":"Запрос международной защиты","es":"Solicitud de protección internacional"},{"v":"proteccion_internacional_concedida","ru":"Международная защита получена","es":"Protección internacional concedida"},{"v":"residencia_temporal","ru":"Временный ВНЖ","es":"Residencia temporal"},{"v":"residencia_larga_duracion","ru":"ПМЖ","es":"Residencia de larga duración"},{"v":"residencia_familiar_ue","ru":"ВНЖ члена семьи гражданина ЕС","es":"Residencia de familiar de ciudadano UE"},{"v":"residencia_familiar_es","ru":"ВНЖ члена семьи гражданина Испании","es":"Residencia de familiar de ciudadano español"},{"v":"residencia_circunstancias_excepcionales","ru":"ВНЖ по исключительным обстоятельствам","es":"Residencia por circunstancias excepcionales"},{"v":"irregular","ru":"Нелегальное пребывание","es":"Irregular"},{"v":"otra","ru":"Другое","es":"Otra situación"}],"tipo":[{"v":"no_lucrativa","ru":"ВНЖ без права на работу","es":"No lucrativa","sit":["residencia_temporal"]},{"v":"cuenta_ajena","ru":"Работа по найму","es":"Cuenta ajena","sit":["residencia_temporal"]},{"v":"cuenta_propia","ru":"Самозанятость","es":"Cuenta propia","sit":["residencia_temporal"]},{"v":"trabajo_temporada","ru":"Сезонная работа","es":"Trabajo de temporada","sit":["residencia_temporal"],"note":"Сезонность, макс. 9 месяцев/год, возможность повторного найма"},{"v":"reagrupacion_familiar","ru":"Воссоединение семьи","es":"Reagrupación familiar","sit":["residencia_temporal"]},{"v":"teletrabajo_internacional","ru":"Международный телеработник (цифровой кочевник)","es":"Teletrabajo de carácter internacional","sit":["residencia_temporal"],"note":"Специальный режим Ley 14/2013"},{"v":"profesional_altamente_cualificado","ru":"Высококвалифицированный специалист","es":"Profesional altamente cualificado","sit":["residencia_temporal"]},{"v":"tarjeta_azul_ue","ru":"Голубая карта ЕС","es":"Tarjeta azul-UE","sit":["residencia_temporal"]},{"v":"emprendedores","ru":"Предприниматели","es":"Emprendedores","sit":["residencia_temporal"]},{"v":"investigadores","ru":"Исследователи","es":"Investigadores","sit":["residencia_temporal"]},{"v":"traslado_intraempresarial","ru":"Внутрикорпоративный перевод","es":"Traslado intraempresarial","sit":["residencia_temporal"]},{"v":"familiar_ciudadano_es","ru":"Член семьи гражданина Испании","es":"Familiar de ciudadano español","sit":["residencia_familiar_es"]},{"v":"familiar_ciudadano_ue","ru":"Член семьи гражданина ЕС","es":"Familiar de ciudadano de la UE","sit":["residencia_familiar_ue"]},{"v":"arraigo_social","ru":"Социальное укоренение","es":"Arraigo social","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"arraigo_sociolaboral","ru":"Трудовое укоренение","es":"Arraigo sociolaboral","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"arraigo_socioformativo","ru":"Учебное укоренение","es":"Arraigo socioformativo","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"arraigo_familiar","ru":"Семейное укоренение","es":"Arraigo familiar","sit":["residencia_circunstancias_excepcionales","irregular"],"note":"Сохранён согласно Reglamento RD 1155/2024"},{"v":"arraigo_segunda_oportunidad","ru":"Укоренение «второй шанс»","es":"Arraigo de segunda oportunidad","sit":["residencia_circunstancias_excepcionales","irregular"]},{"v":"razones_humanitarias","ru":"Гуманитарные причины","es":"Razones humanitarias","sit":["residencia_circunstancias_excepcionales"]},{"v":"proteccion_temporal","ru":"Временная защита","es":"Protección temporal","sit":["proteccion_temporal"]},{"v":"larga_duracion","ru":"Долгосрочный ВНЖ","es":"Larga duración","sit":["residencia_larga_duracion"]},{"v":"larga_duracion_ue","ru":"Долгосрочный ВНЖ-ЕС","es":"Larga duración-UE","sit":["residencia_larga_duracion"]},{"v":"otra","ru":"Другое разрешение","es":"Otra autorización","sit":[]}],"estado":[{"v":"sin_iniciar","ru":"Ожидает начала (не подано)","es":"Pendiente de iniciar"},{"v":"preparacion_documentacion","ru":"Сбор и подготовка документов","es":"Preparación de documentación"},{"v":"pendiente_cita","ru":"Ожидание записи на приём","es":"Pendiente de cita"},{"v":"en_tramite","ru":"В процессе рассмотрения","es":"En trámite"},{"v":"requerimiento","ru":"Запрос дополнительных документов","es":"Requerimiento"},{"v":"resuelto_pendiente_tarjeta","ru":"Решение принято, ожидание карты (TIE)","es":"Resuelto, pendiente de tarjeta (TIE)"},{"v":"recurso_presentado","ru":"Подана жалоба","es":"Recurso presentado"},{"v":"caducado","ru":"Истёк срок","es":"Caducado"},{"v":"archivado","ru":"Архив / закрыто","es":"Archivado / cerrado"}],"doc":[{"v":"tie_general","ru":"TIE (карта иностранца)","es":"TIE (tarjeta de identidad de extranjero)"},{"v":"tie_brexit","ru":"Карта по Соглашению о выходе (Brexit)","es":"Tarjeta por Acuerdo de Retirada (Brexit)"},{"v":"certificado_registro_ue","ru":"Сертификат регистрации гражданина ЕС","es":"Certificado de registro de ciudadano de la UE"},{"v":"resguardo_solicitud","ru":"Подтверждение подачи заявления","es":"Resguardo de solicitud"},{"v":"resolucion_favorable","ru":"Положительное решение","es":"Resolución favorable"},{"v":"autorizacion_regreso","ru":"Разрешение на возвращение","es":"Autorización de regreso"},{"v":"pasaporte","ru":"Паспорт","es":"Pasaporte"},{"v":"visado","ru":"Виза","es":"Visado"},{"v":"doc_solicitante_proteccion","ru":"Документ заявителя на международную защиту","es":"Documento de solicitante de protección internacional"},{"v":"cedula_inscripcion","ru":"Удостоверение регистрации (для лиц без документов)","es":"Cédula de inscripción"},{"v":"otro","ru":"Другое","es":"Otro"}],"name":{"situ":"Административный статус","tipo":"Основание / тип разрешения","estado":"Стадия рассмотрения дела","doc":"Тип подтверждающего документа"},"goal":[{"v":"g0","ru":"Получить первый ВНЖ","es":"Obtener residencia inicial"},{"v":"g1","ru":"Продлить ВНЖ","es":"Renovar residencia"},{"v":"g2","ru":"Получить ПМЖ","es":"Obtener residencia de larga duración"},{"v":"g3","ru":"Получить гражданство Испании","es":"Obtener nacionalidad española"},{"v":"g4","ru":"Легализоваться (выйти из нелегального статуса)","es":"Regularizar situación (salir de irregular)"},{"v":"g5","ru":"Получить защиту (убежище/временная)","es":"Obtener protección internacional / temporal"},{"v":"g6","ru":"Оспорить отказ (защитить пребывание)","es":"Recurrir denegación (defender estancia)"}],"next":[{"v":"n0","ru":"Собрать документы","es":"Recopilar documentación"},{"v":"n1","ru":"Записаться на приём","es":"Solicitar cita previa"},{"v":"n2","ru":"Подать дело","es":"Presentar expediente"},{"v":"n3","ru":"Ожидать решения (действий не требуется)","es":"Esperar resolución (sin acción del cliente)"},{"v":"n4","ru":"Донести документы (по запросу)","es":"Entregar documentos adicionales (requerimiento)"},{"v":"n5","ru":"Сдать отпечатки пальцев (TIE)","es":"Cita para toma de huellas (TIE)"},{"v":"n6","ru":"Забрать карту (TIE)","es":"Recoger tarjeta (TIE)"},{"v":"n7","ru":"Подготовить апелляцию","es":"Preparar recurso de alzada"}]};
   var COUNTRIES=[["RU","Россия (Rusia)"],["UA","Украина (Ucrania)"],["AU","Австралия (Australia)"],["AT","Австрия (Austria)"],["AZ","Азербайджан (Azerbaiyán)"],["AX","Аландские о-ва (Islas Aland)"],["AL","Албания (Albania)"],["DZ","Алжир (Argelia)"],["AS","Американское Самоа (Samoa Americana)"],["AI","Ангилья (Anguila)"],["AO","Ангола (Angola)"],["AD","Андорра (Andorra)"],["AQ","Антарктида (Antártida)"],["AG","Антигуа и Барбуда (Antigua y Barbuda)"],["AR","Аргентина (Argentina)"],["AM","Армения (Armenia)"],["AW","Аруба (Aruba)"],["AF","Афганистан (Afganistán)"],["BS","Багамы (Bahamas)"],["BD","Бангладеш (Bangladés)"],["BB","Барбадос (Barbados)"],["BH","Бахрейн (Baréin)"],["BY","Беларусь (Bielorrusia)"],["BZ","Белиз (Belice)"],["BE","Бельгия (Bélgica)"],["BJ","Бенин (Benín)"],["BM","Бермудские о-ва (Bermudas)"],["BG","Болгария (Bulgaria)"],["BO","Боливия (Bolivia)"],["BQ","Бонэйр, Синт-Эстатиус и Саба (Caribe neerlandés)"],["BA","Босния и Герцеговина (Bosnia y Herzegovina)"],["BW","Ботсвана (Botsuana)"],["BR","Бразилия (Brasil)"],["BN","Бруней (Brunéi)"],["BF","Буркина-Фасо (Burkina Faso)"],["BI","Бурунди (Burundi)"],["BT","Бутан (Bután)"],["VU","Вануату (Vanuatu)"],["VA","Ватикан (Ciudad del Vaticano)"],["GB","Великобритания (Reino Unido)"],["HU","Венгрия (Hungría)"],["VE","Венесуэла (Venezuela)"],["VG","Виргинские о-ва (Великобритания) (Islas Vírgenes Británicas)"],["VI","Виргинские о-ва (США) (Islas Vírgenes de EE. UU.)"],["UM","Внешние малые о-ва (США) (Islas menores alejadas de EE. UU.)"],["TL","Восточный Тимор (Timor-Leste)"],["VN","Вьетнам (Vietnam)"],["GA","Габон (Gabón)"],["HT","Гаити (Haití)"],["GY","Гайана (Guyana)"],["GM","Гамбия (Gambia)"],["GH","Гана (Ghana)"],["GP","Гваделупа (Guadalupe)"],["GT","Гватемала (Guatemala)"],["GN","Гвинея (Guinea)"],["GW","Гвинея-Бисау (Guinea-Bisáu)"],["DE","Германия (Alemania)"],["GG","Гернси (Guernesey)"],["GI","Гибралтар (Gibraltar)"],["HN","Гондурас (Honduras)"],["HK","Гонконг (Hong Kong)"],["GD","Гренада (Granada)"],["GL","Гренландия (Groenlandia)"],["GR","Греция (Grecia)"],["GE","Грузия (Georgia)"],["GU","Гуам (Guam)"],["DK","Дания (Dinamarca)"],["JE","Джерси (Jersey)"],["DJ","Джибути (Yibuti)"],["DM","Доминика (Dominica)"],["DO","Доминиканская Республика (República Dominicana)"],["EG","Египет (Egipto)"],["ZM","Замбия (Zambia)"],["EH","Западная Сахара (Sáhara Occidental)"],["ZW","Зимбабве (Zimbabue)"],["IL","Израиль (Israel)"],["IN","Индия (India)"],["ID","Индонезия (Indonesia)"],["JO","Иордания (Jordania)"],["IQ","Ирак (Irak)"],["IR","Иран (Irán)"],["IE","Ирландия (Irlanda)"],["IS","Исландия (Islandia)"],["ES","Испания (España)"],["IT","Италия (Italia)"],["YE","Йемен (Yemen)"],["CV","Кабо-Верде (Cabo Verde)"],["KZ","Казахстан (Kazajistán)"],["KH","Камбоджа (Camboya)"],["CM","Камерун (Camerún)"],["CA","Канада (Canadá)"],["QA","Катар (Catar)"],["KE","Кения (Kenia)"],["CY","Кипр (Chipre)"],["KG","Киргизия (Kirguistán)"],["KI","Кирибати (Kiribati)"],["CN","Китай (China)"],["KP","КНДР (Corea del Norte)"],["CC","Кокосовые о-ва (Islas Cocos)"],["CO","Колумбия (Colombia)"],["KM","Коморы (Comoras)"],["CG","Конго - Браззавиль (Congo)"],["CD","Конго - Киншаса (República Democrática del Congo)"],["CR","Коста-Рика (Costa Rica)"],["CI","Кот-д’Ивуар (Côte d’Ivoire)"],["CU","Куба (Cuba)"],["KW","Кувейт (Kuwait)"],["CW","Кюрасао (Curazao)"],["LA","Лаос (Laos)"],["LV","Латвия (Letonia)"],["LS","Лесото (Lesoto)"],["LR","Либерия (Liberia)"],["LB","Ливан (Líbano)"],["LY","Ливия (Libia)"],["LT","Литва (Lituania)"],["LI","Лихтенштейн (Liechtenstein)"],["LU","Люксембург (Luxemburgo)"],["MU","Маврикий (Mauricio)"],["MR","Мавритания (Mauritania)"],["MG","Мадагаскар (Madagascar)"],["YT","Майотта (Mayotte)"],["MO","Макао (Macao)"],["MW","Малави (Malaui)"],["MY","Малайзия (Malasia)"],["ML","Мали (Mali)"],["MV","Мальдивы (Maldivas)"],["MT","Мальта (Malta)"],["MA","Марокко (Marruecos)"],["MQ","Мартиника (Martinica)"],["MH","Маршалловы о-ва (Islas Marshall)"],["MX","Мексика (México)"],["MZ","Мозамбик (Mozambique)"],["MD","Молдова (Moldavia)"],["MC","Монако (Mónaco)"],["MN","Монголия (Mongolia)"],["MS","Монтсеррат (Montserrat)"],["MM","Мьянма (Бирма) (Myanmar (Birmania))"],["NA","Намибия (Namibia)"],["NR","Науру (Nauru)"],["NP","Непал (Nepal)"],["NE","Нигер (Níger)"],["NG","Нигерия (Nigeria)"],["NL","Нидерланды (Países Bajos)"],["NI","Никарагуа (Nicaragua)"],["NU","Ниуэ (Niue)"],["NZ","Новая Зеландия (Nueva Zelanda)"],["NC","Новая Каледония (Nueva Caledonia)"],["NO","Норвегия (Noruega)"],["BV","о-в Буве (Isla Bouvet)"],["IM","о-в Мэн (Isla de Man)"],["NF","о-в Норфолк (Isla Norfolk)"],["CX","о-в Рождества (Isla de Navidad)"],["SH","о-в Св. Елены (Santa Elena)"],["CK","о-ва Кука (Islas Cook)"],["PN","о-ва Питкэрн (Islas Pitcairn)"],["AE","ОАЭ (Emiratos Árabes Unidos)"],["OM","Оман (Omán)"],["PK","Пакистан (Pakistán)"],["PW","Палау (Palaos)"],["PS","Палестина (Palestina)"],["PA","Панама (Panamá)"],["PG","Папуа — Новая Гвинея (Papúa Nueva Guinea)"],["PY","Парагвай (Paraguay)"],["PE","Перу (Perú)"],["PL","Польша (Polonia)"],["PT","Португалия (Portugal)"],["PR","Пуэрто-Рико (Puerto Rico)"],["KR","Республика Корея (Corea del Sur)"],["RE","Реюньон (Reunión)"],["RW","Руанда (Ruanda)"],["RO","Румыния (Rumanía)"],["SV","Сальвадор (El Salvador)"],["WS","Самоа (Samoa)"],["SM","Сан-Марино (San Marino)"],["ST","Сан-Томе и Принсипи (Santo Tomé y Príncipe)"],["SA","Саудовская Аравия (Arabia Saudí)"],["MK","Северная Македония (Macedonia del Norte)"],["MP","Северные Марианские о-ва (Islas Marianas del Norte)"],["SC","Сейшельские о-ва (Seychelles)"],["BL","Сен-Бартелеми (San Bartolomé)"],["MF","Сен-Мартен (San Martín)"],["PM","Сен-Пьер и Микелон (San Pedro y Miquelón)"],["SN","Сенегал (Senegal)"],["VC","Сент-Винсент и Гренадины (San Vicente y las Granadinas)"],["KN","Сент-Китс и Невис (San Cristóbal y Nieves)"],["LC","Сент-Люсия (Santa Lucía)"],["RS","Сербия (Serbia)"],["SG","Сингапур (Singapur)"],["SX","Синт-Мартен (Sint Maarten)"],["SY","Сирия (Siria)"],["SK","Словакия (Eslovaquia)"],["SI","Словения (Eslovenia)"],["US","Соединенные Штаты (Estados Unidos)"],["SB","Соломоновы о-ва (Islas Salomón)"],["SO","Сомали (Somalia)"],["SD","Судан (Sudán)"],["SR","Суринам (Surinam)"],["SL","Сьерра-Леоне (Sierra Leona)"],["TJ","Таджикистан (Tayikistán)"],["TH","Таиланд (Tailandia)"],["TW","Тайвань (Taiwán)"],["TZ","Танзания (Tanzania)"],["TC","Тёркс и Кайкос (Islas Turcas y Caicos)"],["TG","Того (Togo)"],["TK","Токелау (Tokelau)"],["TO","Тонга (Tonga)"],["TT","Тринидад и Тобаго (Trinidad y Tobago)"],["TV","Тувалу (Tuvalu)"],["TN","Тунис (Túnez)"],["TM","Туркменистан (Turkmenistán)"],["TR","Турция (Turquía)"],["UG","Уганда (Uganda)"],["UZ","Узбекистан (Uzbekistán)"],["WF","Уоллис и Футуна (Wallis y Futuna)"],["UY","Уругвай (Uruguay)"],["FO","Фарерские о-ва (Islas Feroe)"],["FJ","Фиджи (Fiyi)"],["PH","Филиппины (Filipinas)"],["FI","Финляндия (Finlandia)"],["FK","Фолклендские (Мальвинские) о-ва (Islas Malvinas (Islas Falkland))"],["FR","Франция (Francia)"],["GF","Французская Гвиана (Guayana Francesa)"],["PF","Французская Полинезия (Polinesia Francesa)"],["TF","Французские Южные территории (Territorios Australes Franceses)"],["HR","Хорватия (Croacia)"],["CF","Центрально-Африканская Республика (República Centroafricana)"],["TD","Чад (Chad)"],["ME","Черногория (Montenegro)"],["CZ","Чехия (Chequia)"],["CL","Чили (Chile)"],["CH","Швейцария (Suiza)"],["SE","Швеция (Suecia)"],["SJ","Шпицберген и Ян-Майен (Svalbard y Jan Mayen)"],["LK","Шри-Ланка (Sri Lanka)"],["EC","Эквадор (Ecuador)"],["GQ","Экваториальная Гвинея (Guinea Ecuatorial)"],["ER","Эритрея (Eritrea)"],["SZ","Эсватини (Esuatini)"],["EE","Эстония (Estonia)"],["ET","Эфиопия (Etiopía)"],["ZA","Южно-Африканская Республика (Sudáfrica)"],["SS","Южный Судан (Sudán del Sur)"],["JM","Ямайка (Jamaica)"],["JP","Япония (Japón)"]];
   function natLabel(v){var r=COUNTRIES.filter(function(x){return x[0]===v;})[0];return r?r[1]:(v||'');}
-  function lab(o){return o.ru+' ('+o.es+')';}
+  function lab(o){return o.ru+(o.es?' ('+o.es+')':'');}
   function known(list,v){return list.some(function(o){return o.v===v;});}
   function allowedTipo(c){return OPT.tipo.filter(function(o){return !c.situ||!known(OPT.situ,c.situ)||!o.sit.length||o.sit.indexOf(c.situ)>=0;});}
   function dlOpts(id,items){return '<datalist id="dl_'+id+'">'+items.map(function(x){return '<option value="'+esc(x)+'"></option>';}).join('')+'</datalist>';}
@@ -520,9 +551,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   }
   function cardFields(c,dv){
     var h='<div class="two"><section class="box"><h4>Что делаем сейчас</h4><div class="g2">';
-    h+=suggF('fGoal','Главная цель',OPT.goal,c.goal);
+    h+=suggF('fGoal','Главная цель',OPT.goal.map(lab),c.goal);
     h+=comboF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
-    h+=suggF('nextIn','Следующий шаг',OPT.next,c.next,'',dv?dv.t:PH);
+    h+=suggF('nextIn','Следующий шаг',OPT.next.map(lab),c.next,'',dv?dv.t:PH);
     h+=txtF('fNextNote','Комментарий к следующему шагу',c.nextNote,'Добавьте подробности к действию','full');
     h+='</div></section><section class="box"><h4>Текущий статус</h4><div class="g2">';
     h+=comboF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
@@ -574,8 +605,8 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     else if(storeOk){s.className='stat';s.textContent=savedAt?'Сохранено в этом браузере, '+savedAt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Данные сохраняются в этом браузере';}
     else{s.className='stat bad';s.textContent='Не сохраняется: браузер блокирует хранилище. Делайте копии в файл';}
   }
-  function render(){renderSeg();renderList();renderTabs();
-    if(active==='today')renderToday();else renderClient(byId(active));
+  function render(){cbClose();renderSeg();renderList();renderTabs();
+    if(active==='today')renderToday();else if(active==='dict')renderDict();else renderClient(byId(active));
     updateSaveBar();save();renderTop();}
   function refreshAround(){renderList();renderTabs();}
 
@@ -594,14 +625,16 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
-    var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=v==='today'?'today':+v;render();return;}
+    var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict')?v:+v;render();return;}
     var sb=e.target.closest('[data-sent]');if(sb){var sid=sb.getAttribute('data-sent');sent[sid]=!sent[sid];render();return;}
     var cb=e.target.closest('[data-copy]');if(cb){var n=notes().filter(function(z){return z.id===cb.getAttribute('data-copy');})[0];
       try{navigator.clipboard.writeText(n.msg).then(function(){toast('Текст скопирован');},function(){toast('Не удалось скопировать');});}catch(err){toast('Не удалось скопировать');}return;}
     var a=e.target.closest('[data-act]');if(a&&typeof active==='number'){act(a.getAttribute('data-act'));}
   });
   document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('tab')&&e.target.hasAttribute('tabindex')){active=+e.target.getAttribute('data-tab');render();}});
-  function updateSaveBar(force){var bar=$('savebar'),c=typeof active==='number'?byId(active):null;bar.hidden=!(c&&(force||isDirty(c)));}
+  function updateSaveBar(force){var bar=$('savebar'),show;
+    if(active==='dict')show=dictDirty();else{var c=typeof active==='number'?byId(active):null;show=!!(c&&(force||isDirty(c)));}
+    bar.hidden=!show;var mg=bar.querySelector('.sbmsg');if(mg)mg.textContent=active==='dict'?'Есть несохранённые изменения справочника':'Есть несохранённые изменения';}
   /* Свой выпадающий список: текст в поле остаётся и правится как обычно, а все варианты видны при клике.
      Список фильтруется только после того, как вы начали печатать. */
   var cbPop=document.createElement('div');cbPop.id='cbpop';cbPop.hidden=true;cbPop.setAttribute('role','listbox');document.body.appendChild(cbPop);
@@ -646,10 +679,124 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   document.addEventListener('focusout',function(e){if(isCb(e.target))cbClose();});
   window.addEventListener('resize',cbClose);
   document.getElementById('main').addEventListener('scroll',cbClose);
+  /* ===== Справочник опций (вкладка «Справочник») ===== */
+  var DICTS=[
+    {k:'situ',t:'Административный статус',coded:true},
+    {k:'tipo',t:'Основание / тип разрешения',coded:true,dep:true},
+    {k:'estado',t:'Стадия рассмотрения дела',coded:true},
+    {k:'doc',t:'Тип подтверждающего документа',coded:true},
+    {k:'goal',t:'Главная цель',coded:false},
+    {k:'next',t:'Следующий шаг',coded:false}];
+  var DKEYS=DICTS.map(function(d){return d.k;}),DKEY='crm-dict-v1';
+  function clone(x){return JSON.parse(JSON.stringify(x));}
+  function dictPick(){var o={};DKEYS.forEach(function(k){o[k]=clone(OPT[k]);});return o;}
+  var DICT_DEFAULT=dictPick();
+  function dictValid(o){return o&&DKEYS.every(function(k){return Array.isArray(o[k])&&o[k].every(function(x){return x&&typeof x.ru==='string'&&typeof x.v==='string'&&(k!=='tipo'||Array.isArray(x.sit));});});}
+  function dictApply(o){if(dictValid(o)){DKEYS.forEach(function(k){OPT[k]=clone(o[k]);});return true;}return false;}
+  try{var ds=localStorage.getItem(DKEY);if(ds)dictApply(JSON.parse(ds));}catch(e){}
+  var dictKey='situ',dictDraft=null,dictBase='';
+  function dictOpen(){if(!dictDraft){dictBase=JSON.stringify(dictPick());dictDraft=JSON.parse(dictBase);}}
+  function dictDirty(){return !!dictDraft&&JSON.stringify(dictDraft)!==dictBase;}
+  function dictUsage(k,o){
+    var saved=OPT[k].filter(function(x){return x.v===o.v;})[0];if(!saved)return 0;
+    return clients.filter(function(c){return k==='goal'?c.goal===lab(saved):k==='next'?c.next===lab(saved):c[k]===saved.v;}).length;
+  }
+  function dictSitText(o){var n=(o.sit||[]).length;return n?'Статусов: '+n:'Любой статус';}
+  function renderDict(){
+    dictOpen();
+    var d=DICTS.filter(function(x){return x.k===dictKey;})[0],list=dictDraft[dictKey];
+    var h='<h2 class="dh">Справочник опций</h2><p class="dsub">Варианты для выпадающих списков в карточке клиента. Изменения применяются после нажатия «Сохранить».</p>';
+    h+='<div class="dseg" role="tablist">'+DICTS.map(function(x){return '<button type="button" class="dsb" role="tab" data-dk="'+x.k+'" aria-selected="'+(x.k===dictKey)+'">'+esc(x.t)+' <span class="dn">'+dictDraft[x.k].length+'</span></button>';}).join('')+'</div>';
+    h+='<div class="card dcard"><div class="dtools"><button class="btn small" type="button" data-dact="add">+ Добавить вариант</button>'+
+      '<span class="dsortl">Сортировать:</span><button class="btn small ghost" type="button" data-dact="sortaz">А–Я</button><button class="btn small ghost" type="button" data-dact="sortza">Я–А</button>'+
+      '<button class="btn small ghost dreset" type="button" data-dact="reset">Вернуть исходный справочник</button></div>';
+    if(!d.coded)h+='<p class="dnote">Это подсказки: в карточке можно выбрать вариант или вписать свой текст. Переименование не меняет уже заполненные карточки.</p>';
+    else h+='<p class="dnote">Переименование меняет подпись у всех клиентов. Если удалить вариант, у клиентов, где он выбран, значение останется обычным текстом.</p>';
+    h+='<div class="drow dhead'+(d.dep?' dep':'')+'"><span></span><span>Порядок</span><span>По-русски</span><span>По-испански</span>'+(d.dep?'<span>Показывать при статусе</span>':'')+'<span>Используется</span><span></span></div>';
+    if(!list.length)h+='<div class="dempty">В списке пока нет вариантов. Добавьте первый.</div>';
+    list.forEach(function(o,i){
+      var u=dictUsage(dictKey,o);
+      h+='<div class="drow'+(d.dep?' dep':'')+'" data-di="'+i+'">'+
+        '<span class="dgrip" draggable="true" data-dgrip="'+i+'" title="Перетащите, чтобы изменить порядок" aria-label="Перетащить">⠿</span>'+
+        '<span class="dmv"><button type="button" class="ib" data-dup="'+i+'" aria-label="Выше"'+(i?'':' disabled')+'>↑</button><button type="button" class="ib" data-ddown="'+i+'" aria-label="Ниже"'+(i<list.length-1?'':' disabled')+'>↓</button></span>'+
+        '<input class="inl" data-df="ru" data-di="'+i+'" value="'+esc(o.ru)+'" aria-label="Название по-русски" placeholder="Название">'+
+        '<input class="inl" data-df="es" data-di="'+i+'" value="'+esc(o.es||'')+'" aria-label="Название по-испански" placeholder="Nombre">';
+      if(d.dep){
+        h+='<details class="sitsel"><summary>'+dictSitText(o)+'</summary><div class="chk">'+dictDraft.situ.map(function(s){return '<label><input type="checkbox" data-dsit="'+i+'" value="'+esc(s.v)+'"'+(o.sit.indexOf(s.v)>=0?' checked':'')+'> '+esc(s.ru)+'</label>';}).join('')+'<div class="chkh">Если ничего не выбрано, вариант показывается при любом статусе.</div></div></details>';
+      }
+      h+='<span class="du">'+(u?u+' кл.':'—')+'</span>'+
+        '<button type="button" class="ib del" data-ddel="'+i+'" aria-label="Удалить"'+((dictKey==='doc'&&o.v==='otro')?' disabled title="Служебный вариант: от него зависит поле «Другой документ»"':'')+'>×</button></div>';
+    });
+    h+='</div>';
+    $('main').innerHTML=h;
+  }
+  function dictRender(){var m=$('main'),st=m.scrollTop;render();m.scrollTop=st;}
+  function dictNewCode(){return 'opt_'+Math.random().toString(36).slice(2,8);}
+  function dictMove(from,to){var l=dictDraft[dictKey];if(from===to||to<0||to>=l.length)return;l.splice(to,0,l.splice(from,1)[0]);dictRender();}
+  function dictCancel(){dictDraft=JSON.parse(dictBase);render();toast('Изменения отменены');}
+  function dictSave(){
+    var bad=null;
+    DKEYS.forEach(function(k){dictDraft[k].forEach(function(o,i){o.ru=(o.ru||'').trim();o.es=(o.es||'').trim();if(!o.ru&&!bad)bad={k:k,i:i};});});
+    if(bad){dictKey=bad.k;dictRender();var el=document.querySelector('[data-df="ru"][data-di="'+bad.i+'"]');if(el)el.focus();toast('Заполните название по-русски у каждого варианта');return;}
+    var keepSit={};dictDraft.situ.forEach(function(o){keepSit[o.v]=1;});
+    dictDraft.tipo.forEach(function(o){o.sit=o.sit.filter(function(v){return keepSit[v];});});
+    ['situ','tipo','estado','doc'].forEach(function(k){
+      var keep={};dictDraft[k].forEach(function(o){keep[o.v]=1;});
+      OPT[k].forEach(function(o){if(!keep[o.v])clients.forEach(function(c){if(c[k]===o.v)c[k]=lab(o);if(c._snap&&c._snap[k]===o.v)c._snap[k]=lab(o);});});
+    });
+    DKEYS.forEach(function(k){OPT[k]=clone(dictDraft[k]);});
+    var snap=dictPick();dictBase=JSON.stringify(snap);dictDraft=JSON.parse(dictBase);
+    try{localStorage.setItem(DKEY,dictBase);}catch(e){}
+    render();
+    if(remote.loaded){
+      sb('app_settings',{method:'POST',prefer:'resolution=merge-duplicates,return=minimal',body:[{key:'dictionary',value:snap,updated_at:new Date().toISOString()}]})
+        .then(function(){toast('Справочник сохранён');},function(){toast('Сохранено в браузере: Supabase недоступен');});
+    }else toast('Справочник сохранён');
+  }
+  function dictLoadRemote(){
+    return sb('app_settings?key=eq.dictionary&select=value').then(function(r){
+      if(r&&r[0]&&dictApply(r[0].value)){try{localStorage.setItem(DKEY,JSON.stringify(dictPick()));}catch(e){}dictDraft=null;}
+    }).catch(function(){});
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target;if(!t.closest||active!=='dict')return;
+    var b=t.closest('[data-dk]');if(b){dictKey=b.getAttribute('data-dk');dictRender();return;}
+    var a=t.closest('[data-dact]');
+    if(a){var act=a.getAttribute('data-dact'),l=dictDraft[dictKey];
+      if(act==='add'){var d0=DICTS.filter(function(x){return x.k===dictKey;})[0],it={v:d0.coded?dictNewCode():'n_'+Math.random().toString(36).slice(2,8),ru:'',es:''};if(dictKey==='tipo')it.sit=[];l.push(it);dictRender();
+        var last=document.querySelector('[data-df="ru"][data-di="'+(l.length-1)+'"]');if(last){last.focus();last.scrollIntoView({block:'center'});}updateSaveBar();}
+      else if(act==='sortaz'||act==='sortza'){l.sort(function(x,y){return x.ru.localeCompare(y.ru,'ru')*(act==='sortaz'?1:-1);});dictRender();}
+      else if(act==='reset'){if(confirm('Вернуть исходные варианты во всех шести списках? Изменения применятся после нажатия «Сохранить».')){dictDraft=clone(DICT_DEFAULT);dictRender();}}
+      return;}
+    var up=t.closest('[data-dup]');if(up){var i1=+up.getAttribute('data-dup');dictMove(i1,i1-1);return;}
+    var dn=t.closest('[data-ddown]');if(dn){var i2=+dn.getAttribute('data-ddown');dictMove(i2,i2+1);return;}
+    var del=t.closest('[data-ddel]');
+    if(del&&!del.disabled){var i3=+del.getAttribute('data-ddel'),o=dictDraft[dictKey][i3],u=dictUsage(dictKey,o);
+      if(u&&!confirm('Этот вариант выбран у клиентов: '+u+'. После сохранения у них останется обычный текст. Удалить?'))return;
+      dictDraft[dictKey].splice(i3,1);dictRender();updateSaveBar();}
+  });
+  document.addEventListener('input',function(e){
+    var t=e.target;if(active!=='dict'||!t.getAttribute||!t.getAttribute('data-df'))return;
+    dictDraft[dictKey][+t.getAttribute('data-di')][t.getAttribute('data-df')]=t.value;updateSaveBar();});
+  document.addEventListener('change',function(e){
+    var t=e.target;if(active!=='dict'||!t.getAttribute||t.getAttribute('data-dsit')===null)return;
+    var o=dictDraft.tipo[+t.getAttribute('data-dsit')],ix=o.sit.indexOf(t.value);
+    if(t.checked&&ix<0)o.sit.push(t.value);if(!t.checked&&ix>=0)o.sit.splice(ix,1);
+    var sm=t.closest('details').querySelector('summary');if(sm)sm.textContent=dictSitText(o);updateSaveBar();});
+  var dragI=null;
+  document.addEventListener('dragstart',function(e){var g=e.target.closest&&e.target.closest('[data-dgrip]');if(!g)return;
+    dragI=+g.getAttribute('data-dgrip');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(dragI));
+    var r=g.closest('.drow');if(r){r.classList.add('dragging');try{e.dataTransfer.setDragImage(r,20,16);}catch(x){}}});
+  document.addEventListener('dragover',function(e){var r=e.target.closest&&e.target.closest('.drow[data-di]');if(!r||dragI===null)return;e.preventDefault();
+    [].forEach.call(document.querySelectorAll('.drow.over'),function(x){x.classList.remove('over');});r.classList.add('over');});
+  document.addEventListener('drop',function(e){var r=e.target.closest&&e.target.closest('.drow[data-di]');if(!r||dragI===null)return;e.preventDefault();
+    var to=+r.getAttribute('data-di'),from=dragI;dragI=null;dictMove(from,to);});
+  document.addEventListener('dragend',function(){dragI=null;[].forEach.call(document.querySelectorAll('.drow.over,.drow.dragging'),function(x){x.classList.remove('over','dragging');});});
   var skipChange=false;
   function blurActive(skip){var ae=document.activeElement;if(ae&&ae.tagName==='INPUT'){skipChange=!!skip;ae.blur();skipChange=false;}}
   function cancelEdit(c){if(c._snap){EF.forEach(function(k){c[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});delete c._snap;}}
   function saveCard(){
+    if(active==='dict'){dictSave();return;}
     var c=typeof active==='number'?byId(active):null;if(!c)return;
     blurActive(false);
     if(!isDirty(c)){delete c._snap;render();toast('Изменений нет');return;}
@@ -658,6 +805,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     toast('Сохранено');
   }
   function cancelCard(){
+    if(active==='dict'){dictCancel();return;}
     var c=typeof active==='number'?byId(active):null;if(!c)return;
     blurActive(true);cancelEdit(c);render();toast('Изменения отменены');
   }
@@ -669,8 +817,8 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var b=e.target.closest&&e.target.closest('[data-card]');if(!b||b.disabled||e.detail!==0)return;
     if(b.getAttribute('data-card')==='save')saveCard();else cancelCard();});
   document.addEventListener('keydown',function(e){
-    if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')&&typeof active==='number'){e.preventDefault();saveCard();}});
-  window.addEventListener('beforeunload',function(e){if(clients.some(isDirty)){e.preventDefault();e.returnValue='';}});
+    if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')&&(typeof active==='number'||active==='dict')){e.preventDefault();saveCard();}});
+  window.addEventListener('beforeunload',function(e){if(clients.some(isDirty)||dictDirty()){e.preventDefault();e.returnValue='';}});
   function val(id){var el=$(id);return el?el.value:'';}
   function act(a){
     var c=byId(active);if(!c)return;
@@ -740,7 +888,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 
   if(!load()){openTab(1);openTab(3);}
   active='today';render();
-  remoteLoad().then(function(){tabs=[];active='today';render();},function(){remote.state='err';renderTop();});
+  remoteLoad().then(dictLoadRemote).then(function(){tabs=[];active='today';render();},function(){remote.state='err';renderTop();});
 })();
 </script>
 </body>
