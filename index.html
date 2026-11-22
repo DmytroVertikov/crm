@@ -66,6 +66,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn:hover{filter:brightness(1.08)}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
 .btn.ghost:hover{background:var(--accent-soft)}
+.savebar{position:sticky;bottom:0;display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:18px 0 0;padding:12px 4px;background:var(--bg);border-top:1px solid var(--line);z-index:5}
+.savebar .sbmsg{margin-right:auto;font-size:13.5px;color:var(--muted)}
+.savebar.dirty .sbmsg{color:var(--warn);font-weight:600}
+.savebar .btn{padding:10px 22px;font-size:15px}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+.tab .dot{color:var(--warn);font-size:10px;vertical-align:middle}
 .btn.small{padding:4px 10px;font-size:13px;border-radius:6px}
 .list{flex:1;overflow-y:auto}
 .newrow{padding:10px 12px;border-bottom:1px solid var(--line);background:var(--accent-soft)}
@@ -253,7 +259,13 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 
   /* Storage: this browser only. Backup file moves data between devices. */
   var KEY='crm-residencias-v1',demo=true,storeOk=true,savedAt=null;
-  function snapshot(){return JSON.stringify({v:1,demo:demo,clients:clients,sent:sent,nextNum:nextNum,nextId:nextId});}
+  /* Поля карточки правятся «в черновике»: пока не нажато «Сохранить», в память браузера и в Supabase уходит прежнее значение. */
+  var EF=['name','phone','expiry','next','situ','tipo','estado','doc','otroDoc','goal','nextNote','nat','nie','phones2'];
+  var EDIT_ID=/^(fName|fPhone|fGoal|fEstado|fSitu|fTipo|fDoc|fOtro|fNextNote|fNat|fNie|fExp|nextIn|fPh2_\d+)$/;
+  function beginEdit(c){if(!c._snap){var o={};EF.forEach(function(k){o[k]=k==='phones2'?(c[k]||[]).slice():c[k];});c._snap=o;}}
+  function isDirty(c){return !!c._snap&&EF.some(function(k){return JSON.stringify(c[k])!==JSON.stringify(c._snap[k]);});}
+  function persisted(c){if(!c._snap)return c;var o={};for(var k in c)if(k!=='_snap')o[k]=c[k];EF.forEach(function(k){o[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});return o;}
+  function snapshot(){return JSON.stringify({v:1,demo:demo,clients:clients.map(persisted),sent:sent,nextNum:nextNum,nextId:nextId});}
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
     clients=o.clients;sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
@@ -277,6 +289,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
         return opt.method&&opt.method!=='GET'?null:r.json();});
   }
   function toRows(c){
+    c=persisted(c);
     var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:c.nextNote||'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
     var k=c.cs?{client_id:c.id,type:c.cs.type,filed:c.cs.filed,req_received:c.cs.reqRecv||null,req_due:c.cs.reqDue||null,
       answered:c.cs.answered||null,result_text:c.cs.result?c.cs.result.text:null,result_date:c.cs.result?c.cs.result.date:null}:null;
@@ -419,7 +432,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function renderTabs(){
     var u=urgentCount();
     var h='<button class="tab" role="tab" type="button" data-tab="today" aria-selected="'+(active==='today')+'">Сегодня'+(u?' <span class="bd">'+u+'</span>':'')+'</button>';
-    tabs.forEach(function(id){var c=byId(id);h+='<span class="tab" role="tab" tabindex="0" data-tab="'+id+'" aria-selected="'+(active===id)+'">'+esc(c.name)+' <button class="x" type="button" data-close="'+id+'" aria-label="Закрыть вкладку">×</button></span>';});
+    tabs.forEach(function(id){var c=byId(id);h+='<span class="tab" role="tab" tabindex="0" data-tab="'+id+'" aria-selected="'+(active===id)+'">'+esc(c.name)+(isDirty(c)?' <span class="dot" title="Не сохранено">●</span>':'')+' <button class="x" type="button" data-close="'+id+'" aria-label="Закрыть вкладку">×</button></span>';});
     $('tabs').innerHTML=h;
   }
 
@@ -540,6 +553,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(rn){h+='<h3 class="sec">Напоминание клиенту</h3>'+feedCard(rn);}
     h+='<h3 class="sec">История и примечания</h3>';
     h+=c.notes.length?c.notes.map(function(n){return '<div class="card'+(n.t==='event'?' ev':'')+'"><div class="h"><span>'+(n.t==='event'?'Событие':'Примечание')+'</span><span>'+fmt(n.date)+'</span></div>'+esc(n.text)+'</div>';}).join(''):'<div class="small-t">Пока пусто. Пишите заметки внизу.</div>';
+    var dd=isDirty(c);
+    h+='<div class="savebar'+(dd?' dirty':'')+'" role="region" aria-label="Сохранение карточки"><span class="sbmsg">'+(dd?'Есть несохранённые изменения':'Все изменения сохранены')+'</span>'+
+      '<button class="btn ghost" type="button" data-card="cancel"'+(dd?'':' disabled')+'>Отменить</button><button class="btn" type="button" data-card="save"'+(dd?'':' disabled')+'>Сохранить</button></div>';
     $('main').innerHTML=h;
     $('composer').hidden=false;$('noteIn').value=c.draft||'';
     var m=$('main');m.scrollTop=m.scrollTop;
@@ -573,7 +589,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
-    var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
+    var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
     var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=v==='today'?'today':+v;render();return;}
     var sb=e.target.closest('[data-sent]');if(sb){var sid=sb.getAttribute('data-sent');sent[sid]=!sent[sid];render();return;}
     var cb=e.target.closest('[data-copy]');if(cb){var n=notes().filter(function(z){return z.id===cb.getAttribute('data-copy');})[0];
@@ -581,15 +597,40 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var a=e.target.closest('[data-act]');if(a&&typeof active==='number'){act(a.getAttribute('data-act'));}
   });
   document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('tab')&&e.target.hasAttribute('tabindex')){active=+e.target.getAttribute('data-tab');render();}});
+  var skipChange=false;
+  function blurActive(skip){var ae=document.activeElement;if(ae&&ae.tagName==='INPUT'){skipChange=!!skip;ae.blur();skipChange=false;}}
+  function cancelEdit(c){if(c._snap){EF.forEach(function(k){c[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});delete c._snap;}}
+  function saveCard(){
+    var c=typeof active==='number'?byId(active):null;if(!c)return;
+    blurActive(false);
+    if(!isDirty(c)){delete c._snap;render();toast('Изменений нет');return;}
+    delete c._snap;render();
+    if(remote.loaded){clearTimeout(remote.timer);remotePush();}
+    toast('Сохранено');
+  }
+  function cancelCard(){
+    var c=typeof active==='number'?byId(active):null;if(!c)return;
+    blurActive(true);cancelEdit(c);render();toast('Изменения отменены');
+  }
+  /* Кнопки срабатывают на mousedown: иначе поле теряет фокус, карточка перерисовывается и клик по кнопке пропадает. */
+  document.addEventListener('mousedown',function(e){
+    var b=e.target.closest&&e.target.closest('[data-card]');if(!b||b.disabled)return;
+    e.preventDefault();if(b.getAttribute('data-card')==='save')saveCard();else cancelCard();});
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('[data-card]');if(!b||b.disabled||e.detail!==0)return;
+    if(b.getAttribute('data-card')==='save')saveCard();else cancelCard();});
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')&&typeof active==='number'){e.preventDefault();saveCard();}});
+  window.addEventListener('beforeunload',function(e){if(clients.some(isDirty)){e.preventDefault();e.returnValue='';}});
   function val(id){var el=$(id);return el?el.value:'';}
   function act(a){
     var c=byId(active);if(!c)return;
-    if(a==='addphone'){c.phones2.push('');render();var el=$('fPh2_'+(c.phones2.length-1));if(el)el.focus();return;}
+    if(a==='addphone'){beginEdit(c);c.phones2.push('');render();var el=$('fPh2_'+(c.phones2.length-1));if(el)el.focus();return;}
     if(a==='open'){c.cs={type:val('oType'),filed:val('oFiled')||iso(TODAY),reqRecv:null,reqDue:null,answered:null,result:null};ev(c,'Открыто дело: '+c.cs.type+', подано '+fmt(c.cs.filed)+'.');toast('Дело открыто');}
     if(a==='req'){if(!val('rRecv')||!val('rDue')){toast('Укажите обе даты');return;}c.cs.reqRecv=val('rRecv');c.cs.reqDue=val('rDue');ev(c,'Пришёл запрос ведомства. Ответить до '+fmt(c.cs.reqDue)+'.');toast('Запрос записан, напоминание создано');}
     if(a==='ans'){c.cs.answered=val('aDate')||iso(TODAY);ev(c,'Ответ на запрос отправлен '+fmt(c.cs.answered)+'.');toast('Ответ записан');}
     if(a==='res'){c.cs.result={text:val('dRes'),date:val('dDate')||iso(TODAY)};ev(c,'Решение: '+c.cs.result.text+'.');toast('Решение записано');}
-    if(a==='exp'){if(val('newExp'))c.expiry=val('newExp');ev(c,'Срок резиденции обновлён: до '+fmt(c.expiry)+'. Дело закрыто.');c.cs=null;toast('Срок обновлён, дело закрыто');}
+    if(a==='exp'){if(val('newExp')){c.expiry=val('newExp');if(c._snap)c._snap.expiry=c.expiry;}ev(c,'Срок резиденции обновлён: до '+fmt(c.expiry)+'. Дело закрыто.');c.cs=null;toast('Срок обновлён, дело закрыто');}
     render();
   }
   /* Браузер показывает в списке только варианты, подходящие к введённому тексту.
@@ -601,11 +642,13 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(t.dataset&&(t.dataset.enum||t.dataset.sugg)&&t.dataset.prev!==undefined){if(t.value===''&&!t.dataset.touched)t.value=t.dataset.prev;t.placeholder=t.dataset.ph0||PH;delete t.dataset.prev;delete t.dataset.ph0;delete t.dataset.touched;}});
   document.addEventListener('change',function(e){
     var c=typeof active==='number'?byId(active):null;if(!c)return;
+    if(skipChange)return;
     var id=e.target.id;
+    if(EDIT_ID.test(id))beginEdit(c);
     if(id==='cType'){c.cs.type=e.target.value;ev(c,'Тип дела изменён: '+c.cs.type+'.');render();}
     if(id==='nextIn'){c.next=e.target.value.trim();render();}
     if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
-    if(id==='fPhone'){c.phone=e.target.value.trim();save();renderTop();}
+    if(id==='fPhone'){c.phone=e.target.value.trim();render();}
     function setEnum(key,list){
       var t=e.target.value.trim();
       if(!t||t===NONE){c[key]='';}
