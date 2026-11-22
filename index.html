@@ -645,7 +645,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     h+='<div class="meta"><span class="pill '+st.k+'">'+esc(st.t)+'</span>';
     h+='</div>';
     h+=cardFields(c,dv);
-    h+='<div class="lower"><div class="card lower-panel">'+remindersHtml(c)+'</div><div class="card lower-panel">'+caseSummary(c)+'</div></div>';
+    h+='<div class="card">'+remindersHtml(c)+'</div>';
     var rn=notes().filter(function(x){return x.cid===c.id&&x.kind==='client';})[0];
     if(rn){h+='<h3 class="sec">Напоминание клиенту</h3>'+feedCard(rn);}
     h+=logHtml(c);
@@ -949,7 +949,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       '<div class="leb"><button class="ib" type="button" data-la="edit" data-lid="'+esc(e.id)+'" aria-label="Изменить запись" title="Изменить">✎</button><button class="ib del" type="button" data-la="del" data-lid="'+esc(e.id)+'" aria-label="Удалить запись" title="Удалить">×</button></div></div>';
   }
   function logHtml(c){
-    var h='<h3 class="sec">История дела</h3>'+logForm(c),L=sortedLog(c).reverse();
+    var h='<h3 class="sec">История дела</h3>'+closeBar(c)+logForm(c),L=sortedLog(c).reverse();
     h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>';
     return h;
   }
@@ -984,15 +984,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       c.log=c.log.filter(function(z){return z.id!==lid;});if(c._ed&&c._ed.id===lid)c._ed=null;c.cs=caseOf(c);render();toast('Запись удалена');}
   }
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-la]');if(b&&typeof active==='number')logAction(b.getAttribute('data-la'),b.getAttribute('data-lid'));});
-  function caseSummary(c){
-    var k=c.cs,s=stage(c),h='<h3 class="sec">Дело</h3>';
-    if(!k)return h+'<div class="small-t">Дело не открыто. Чтобы открыть его, добавьте в ленте запись «Подача».</div><div style="margin-top:8px"><button class="btn small" type="button" data-la="start">Добавить «Подачу»</button></div>';
-    h+='<ol class="steps">'+stp('Документы поданы',k.filed,true,false,'');
-    h+=stp('Пришёл запрос ведомства'+(k.reqRecv?', ответить до '+fmt(k.reqDue):''),k.reqRecv,!!k.reqRecv,s==='wait','');
-    h+=stp('Ответ на запрос отправлен',k.answered,!!k.answered,s==='answer','');
-    h+=stp('Решение получено'+(k.result?': '+k.result.text:''),k.result&&k.result.date,!!k.result,s==='decision'||s==='wait','')+'</ol>';
-    if(k.result&&k.result.text==='Одобрено')h+='<div class="inline"><label>Новый срок резиденции<input class="inl" type="date" id="newExp" value="'+(c.expiry||'')+'"></label><button class="btn small" data-act="exp" type="button">Обновить срок и закрыть дело</button></div>';
-    return h;
+  function closeBar(c){
+    var k=c.cs;if(!k||!k.result||k.result.text!=='Одобрено')return '';
+    return '<div class="card lf"><div class="lfrow"><label>Новый срок резиденции<input class="inl" type="date" id="newExp" value="'+(c.expiry||'')+'"></label><button class="btn small" data-act="exp" type="button">Обновить срок и закрыть дело</button></div></div>';
   }
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#noteBtn'))addEntry();});
   document.addEventListener('keydown',function(e){if(e.target.id==='noteIn'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addEntry();}});
