@@ -275,7 +275,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function snapshot(){return JSON.stringify({v:1,demo:demo,clients:clients.map(persisted),sent:sent,nextNum:nextNum,nextId:nextId});}
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
-    clients=o.clients;sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
+    clients=o.clients.filter(function(c){return c&&Number.isInteger(+c.id);});clients.forEach(function(c){c.id=+c.id;c.num=+c.num||0;});sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
     clients.forEach(function(c){c.notes=c.notes||[];c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
     tabs=[];active='today';filter='all';
   }
@@ -333,15 +333,15 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       if(remote.last[c.id]===sig)return;
       jobs.push(function(){
         return sb('clients',{method:'POST',prefer:'resolution=merge-duplicates,return=minimal',body:[rows.cl]})
-          .then(function(){return sb('cases?client_id=eq.'+c.id,{method:'DELETE'});})
+          .then(function(){return sb('cases?client_id=eq.'+(+c.id),{method:'DELETE'});})
           .then(function(){return rows.k?sb('cases',{method:'POST',body:[rows.k]}):null;})
-          .then(function(){return sb('notes?client_id=eq.'+c.id,{method:'DELETE'});})
+          .then(function(){return sb('notes?client_id=eq.'+(+c.id),{method:'DELETE'});})
           .then(function(){return rows.n.length?sb('notes',{method:'POST',body:rows.n}):null;})
           .then(function(){remote.last[c.id]=sig;});
       });
     });
     Object.keys(remote.last).forEach(function(id){
-      if(!seen[id])jobs.push(function(){return sb('clients?id=eq.'+id,{method:'DELETE'}).then(function(){delete remote.last[id];});});
+      if(!seen[id])jobs.push(function(){return sb('clients?id=eq.'+(+id),{method:'DELETE'}).then(function(){delete remote.last[id];});});
     });
     jobs.reduce(function(p,j){return p.then(j);},Promise.resolve()).then(function(){remote.state='ok';},function(){remote.state='err';})
       .then(function(){remote.busy=false;renderTop();if(remote.again)remotePush();});
