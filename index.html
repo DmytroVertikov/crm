@@ -479,7 +479,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     return null;
   }
   function openPlans(c){return sortedLog(c).filter(function(e){return e.act==='plan'&&!e.done;});}
-  function stepOf(c){var P=openPlans(c);if(P.length){var p=P[0],d=diff(p.date);return {t:(p.plan||p.text)+' ('+fmtS(p.date)+')',k:d<0?'crit':d<=3?'warn':'ok'};}return derived(c)||{t:'нет шага',k:'none'};}
+  function stepOf(c){var P=openPlans(c);if(P.length){var p=P[0],d=diff(p.date);var o=OPT.next.filter(function(x){return lab(x)===p.plan;})[0];return {t:(o?o.ru:(p.plan||p.text))+' ('+fmtS(p.date)+')',k:d<0?'crit':d<=3?'warn':'ok'};}return derived(c)||{t:'нет шага',k:'none'};}
   function lastDate(c){var L=sortedLog(c).filter(function(e){return e.act!=='plan';});return L.length?L[L.length-1].date:null;}
 
   function notes(){
