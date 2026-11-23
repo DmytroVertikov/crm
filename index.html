@@ -954,7 +954,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       '<div class="leb">'+btn+'<button class="ib" type="button" data-la="edit" data-lid="'+esc(e.id)+'" aria-label="Изменить запись" title="Изменить">✎</button><button class="ib del" type="button" data-la="del" data-lid="'+esc(e.id)+'" aria-label="Удалить запись" title="Удалить">×</button></div></div>';
   }
   function logHtml(c){
-    var h='<h3 class="sec">История дела</h3>'+closeBar(c)+logForm(c),P=openPlans(c),L=sortedLog(c).reverse().filter(function(e){return !(e.act==='plan'&&!e.done);});
+    var h='<h3 class="sec">Журнал работы</h3>'+closeBar(c)+logForm(c),P=openPlans(c),L=sortedLog(c).reverse().filter(function(e){return !(e.act==='plan'&&!e.done);});
     if(P.length)h+='<h3 class="sec">Запланировано</h3><div class="card lelist">'+P.map(function(e){return entryHtml(c,e);}).join('')+'</div>';
     h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':(P.length?'':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>');
     return h;
