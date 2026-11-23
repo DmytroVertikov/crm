@@ -633,7 +633,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     h+=suggF('fGoal','Главная цель',OPT.goal.map(lab),c.goal);
     h+=comboF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
     h+='<div class="full small-t">Следующий шаг: <b>'+esc(stepOf(c).t)+'</b>. Меняется в ленте ниже, действие «Запланировать».</div>';
-    h+='</div></section><section class="box"><h4>Правовой статус клиента</h4><div class="g2">';
+    h+='</div></section><section class="box"><h4>Миграционный статус клиента</h4><div class="g2">';
     h+=comboF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
     h+=comboF('fTipo',OPT.name.tipo,allowedTipo(c),c.tipo,true);
     h+=comboF('fDoc',OPT.name.doc,OPT.doc,c.doc,true);
