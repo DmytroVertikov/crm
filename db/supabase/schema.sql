@@ -76,11 +76,13 @@ create table if not exists public.case_log (
   id bigint generated always as identity primary key,
   client_id bigint not null references public.clients(id) on delete cascade,
   entry_date date not null,
-  action text not null,              -- podacha | zapros | otvet | reshenie | zvonok | primech | zakrytie
+  action text not null,              -- podacha | zapros | otvet | reshenie | zvonok | primech | zakrytie | plan
   comment text not null default '',
   due_date date,                     -- для zapros: ответить до
   result text,                       -- для reshenie: Одобрено / Отказ / ...
-  case_type text                     -- для podacha: тип дела
+  case_type text,                    -- для podacha: тип дела
+  plan text,                         -- для plan: что сделать (запись на будущую дату entry_date)
+  done boolean not null default false -- для plan: выполнено
 );
 create index if not exists idx_case_log_client on public.case_log(client_id, entry_date);
 alter table public.case_log enable row level security;

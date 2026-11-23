@@ -241,6 +241,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .ib:hover{color:var(--text,inherit);border-color:var(--accent)}
 .ib.del:hover{color:#c0392b;border-color:#c0392b}
 .btn.ghost{background:transparent;color:inherit;border:1px solid var(--line)}
+.le.late .led .lem{color:#c0392b}.le.done{opacity:.6}.ib.ok:hover{color:#2e7d4f;border-color:#2e7d4f}
 </style>
 </head>
 <body>
@@ -300,9 +301,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function N(t,text,d){return {t:t,text:text,date:off(d)};}
   /* ===== Лента дела: единый журнал «дата, действие, комментарий» =====
      Статус дела, шаги и напоминания считаются из записей ленты (c.cs — только расчётный кэш). */
-  var ACTS=[{k:'podacha',t:'Подача'},{k:'zapros',t:'Запрос документов'},{k:'otvet',t:'Ответ на запрос'},{k:'reshenie',t:'Решение'},{k:'zvonok',t:'Звонок'},{k:'primech',t:'Примечание'}];
-  var ACT_NAME={podacha:'Подача',zapros:'Запрос документов',otvet:'Ответ на запрос',reshenie:'Решение',zvonok:'Звонок',primech:'Примечание',zakrytie:'Дело закрыто'};
-  var ACT_PILL={podacha:'info',zapros:'warn',otvet:'info',reshenie:'good',zvonok:'none',primech:'none',zakrytie:'good'};
+  var ACTS=[{k:'podacha',t:'Подача'},{k:'zapros',t:'Запрос документов'},{k:'otvet',t:'Ответ на запрос'},{k:'reshenie',t:'Решение'},{k:'zvonok',t:'Звонок'},{k:'primech',t:'Примечание'},{k:'plan',t:'Запланировать'}];
+  var ACT_NAME={podacha:'Подача',zapros:'Запрос документов',otvet:'Ответ на запрос',reshenie:'Решение',zvonok:'Звонок',primech:'Примечание',zakrytie:'Дело закрыто',plan:'Запланировано'};
+  var ACT_PILL={podacha:'info',zapros:'warn',otvet:'info',reshenie:'good',zvonok:'none',primech:'none',zakrytie:'good',plan:'warn'};
   var RESULTS=['Одобрено','Отказ','Нужны дополнительные документы'];
   function newLid(){return 'l'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
   function mkLog(act,date,text,x){var e={id:newLid(),date:date,act:act,text:text||''};if(x)for(var k in x)if(x[k]!=null&&x[k]!=='')e[k]=x[k];return e;}
@@ -351,7 +352,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(!Array.isArray(c.log))c.log=migrateLog(c);
     delete c.notes;
     c.log=c.log.filter(function(e){return e&&e.act;});
-    c.log.forEach(function(e){e.id=e.id?String(e.id):newLid();if(!e.date)e.date=iso(TODAY);e.text=e.text||'';});
+    if(c.next||c.nextNote){c.log.push(mkLog('plan',iso(TODAY),c.nextNote||'',{plan:c.next}));}
+    delete c.next;delete c.nextNote;
+    c.log.forEach(function(e){e.id=e.id?String(e.id):newLid();if(!e.date)e.date=iso(TODAY);e.text=e.text||'';e.done=!!e.done;if(e.plan==null)delete e.plan;});
     c.cs=caseOf(c);
   }
   var clients=[
@@ -366,14 +369,14 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     {id:9,num:1008,name:'Фёдорова Ксения',phone:'+34 611 000 109',expiry:off(400),cs:{type:'Продление',filed:off(-150),reqRecv:off(-100),reqDue:off(-85),answered:off(-90),result:{text:'Одобрено',date:off(-10)}},notes:[]},
     {id:10,num:1040,name:'Тихонов Павел',phone:'+34 611 000 110',expiry:off(150),cs:{type:'Первичная подача',filed:off(-30),reqRecv:off(-3),reqDue:off(9),answered:null,result:null},notes:[]}
   ];
-  clients.forEach(function(c){c.next='';c.draft='';c.goal='';c.nextNote='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.nat='RU';c.nie='';c.phones2=[];normClient(c);});
+  clients.forEach(function(c){c.draft='';c.goal='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.nat='RU';c.nie='';c.phones2=[];normClient(c);});
   var sent={},tabs=[],active='today',filter='all',adding=false;
 
   /* Storage: this browser only. Backup file moves data between devices. */
   var KEY='crm-residencias-v1',demo=true,storeOk=true,savedAt=null;
   /* Поля карточки правятся «в черновике»: пока не нажато «Сохранить», в память браузера и в Supabase уходит прежнее значение. */
-  var EF=['name','phone','expiry','next','situ','tipo','estado','doc','otroDoc','goal','nextNote','nat','nie','phones2'];
-  var EDIT_ID=/^(fName|fPhone|fGoal|fEstado|fSitu|fTipo|fDoc|fOtro|fNextNote|fNat|fNie|fExp|nextIn|fPh2_\d+)$/;
+  var EF=['name','phone','expiry','situ','tipo','estado','doc','otroDoc','goal','nat','nie','phones2'];
+  var EDIT_ID=/^(fName|fPhone|fGoal|fEstado|fSitu|fTipo|fDoc|fOtro|fNat|fNie|fExp|fPh2_\d+)$/;
   function beginEdit(c){if(!c._snap){var o={};EF.forEach(function(k){o[k]=k==='phones2'?(c[k]||[]).slice():c[k];});c._snap=o;}}
   function isDirty(c){return !!c._snap&&EF.some(function(k){return JSON.stringify(c[k])!==JSON.stringify(c._snap[k]);});}
   function persisted(c){var o={};for(var k in c)if(k.charAt(0)!=='_'&&k!=='cs')o[k]=c[k];if(c._snap)EF.forEach(function(k){o[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});return o;}
@@ -381,7 +384,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
     clients=o.clients.filter(function(c){return c&&Number.isInteger(+c.id);});clients.forEach(function(c){c.id=+c.id;c.num=+c.num||0;});sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
-    clients.forEach(function(c){normClient(c);c.next=c.next||'';c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.nextNote=c.nextNote||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
+    clients.forEach(function(c){normClient(c);c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
     tabs=[];active='today';filter='all';
   }
   function save(){try{localStorage.setItem(KEY,snapshot());storeOk=true;savedAt=new Date();}catch(e){storeOk=false;}remoteSoon();}
@@ -402,19 +405,19 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   }
   function toRows(c){
     c=persisted(c);
-    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:c.next||'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:c.nextNote||'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
+    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
     var cs=caseOf(c);
     var k=cs?{client_id:c.id,type:cs.type,filed:cs.filed,req_received:cs.reqRecv||null,req_due:cs.reqDue||null,
       answered:cs.answered||null,result_text:cs.result?cs.result.text:null,result_date:cs.result?cs.result.date:null}:null;
-    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,case_type:e.type||null};});
+    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,case_type:e.type||null,plan:e.plan||null,done:!!e.done};});
     return {cl:cl,k:k,n:n};
   }
   function fromRemote(cl,lg){
     var out=cl.map(function(r){
-      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,next:r.next_step||'',draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nextNote:r.next_note||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
+      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
         log:lg.filter(function(z){return z.client_id===r.id;}).sort(function(x,y){return x.id-y.id;}).map(function(z){
           var e={id:'r'+z.id,date:z.entry_date,act:z.action,text:z.comment||''};
-          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.case_type)e.type=z.case_type;return e;})};
+          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.case_type)e.type=z.case_type;if(z.plan)e.plan=z.plan;e.done=!!z.done;return e;})};
     });
     out.forEach(normClient);
     return out;
@@ -475,8 +478,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(e!==null&&e<=120)return {t:'Связаться с клиентом: готовим продление',k:e<=45?'crit':'warn'};
     return null;
   }
-  function stepOf(c){if(c.next)return {t:c.next,k:'ok'};return derived(c)||{t:'нет шага',k:'none'};}
-  function lastDate(c){var L=sortedLog(c);return L.length?L[L.length-1].date:null;}
+  function openPlans(c){return sortedLog(c).filter(function(e){return e.act==='plan'&&!e.done;});}
+  function stepOf(c){var P=openPlans(c);if(P.length){var p=P[0],d=diff(p.date);return {t:(p.plan||p.text)+' ('+fmtS(p.date)+')',k:d<0?'crit':d<=3?'warn':'ok'};}return derived(c)||{t:'нет шага',k:'none'};}
+  function lastDate(c){var L=sortedLog(c).filter(function(e){return e.act!=='plan';});return L.length?L[L.length-1].date:null;}
 
   function notes(){
     var out=[];
@@ -627,8 +631,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var h='<div class="two"><section class="box"><h4>Что делаем сейчас</h4><div class="g2">';
     h+=suggF('fGoal','Главная цель',OPT.goal.map(lab),c.goal);
     h+=comboF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
-    h+=suggF('nextIn','Следующий шаг',OPT.next.map(lab),c.next,'',dv?dv.t:PH);
-    h+=txtF('fNextNote','Комментарий к следующему шагу',c.nextNote,'Добавьте подробности к действию','full');
+    h+='<div class="full small-t">Следующий шаг: <b>'+esc(stepOf(c).t)+'</b>. Меняется в ленте ниже, действие «Запланировать».</div>';
     h+='</div></section><section class="box"><h4>Текущий статус</h4><div class="g2">';
     h+=comboF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
     h+=comboF('fTipo',OPT.name.tipo,allowedTipo(c),c.tipo,true);
@@ -677,7 +680,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
     if(e.key==='Enter'){var v=e.target.value.trim();if(!v)return;
-      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],next:'',draft:'',goal:'',nextNote:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[]};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
+      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],draft:'',goal:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[]};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
@@ -756,7 +759,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function dictDirty(){return !!dictDraft&&JSON.stringify(dictDraft)!==dictBase;}
   function dictUsage(k,o){
     var saved=OPT[k].filter(function(x){return x.v===o.v;})[0];if(!saved)return 0;
-    return clients.filter(function(c){return k==='goal'?c.goal===lab(saved):k==='next'?c.next===lab(saved):c[k]===saved.v;}).length;
+    return clients.filter(function(c){return k==='goal'?c.goal===lab(saved):k==='next'?false:c[k]===saved.v;}).length+(k==='next'?clients.reduce(function(n,c){return n+c.log.filter(function(e){return e.act==='plan'&&e.plan===lab(saved);}).length;},0):0);
   }
   function dictSitText(o){var n=(o.sit||[]).length;return n?'Статусов: '+n:'Любой статус';}
   function renderDict(){
@@ -888,9 +891,8 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(skipChange)return;
     var id=e.target.id;
     if(EDIT_ID.test(id))beginEdit(c);
-    if(/^l[fe](Date|Act|Type|Due|Res)$/.test(id))lfChange(c,id,e.target.value);
-    if(id==='nextIn'){c.next=e.target.value.trim();render();}
-    if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
+    if(/^l[fe](Date|Act|Type|Due|Res|Plan)$/.test(id))lfChange(c,id,e.target.value);
+        if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
     if(id==='fPhone'){c.phone=e.target.value.trim();render();}
     function setEnum(key,list){
       var t=e.target.value.trim();
@@ -904,7 +906,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(id==='fDoc'){setEnum('doc',OPT.doc);if(c.doc!=='otro')c.otroDoc='';render();}
     if(id==='fOtro'){c.otroDoc=e.target.value.trim();render();}
     if(id==='fGoal'){c.goal=e.target.value.trim();render();}
-    if(id==='fNextNote'){c.nextNote=e.target.value.trim();render();}
     if(id==='fNat'){var tn=e.target.value.trim().toLowerCase(),cn=null;
       COUNTRIES.forEach(function(x){if(!cn&&(x[1].toLowerCase()===tn||x[0].toLowerCase()===tn||x[1].toLowerCase().split(' (')[0]===tn))cn=x;});
       c.nat=cn?cn[0]:e.target.value.trim();render();}
@@ -917,53 +918,59 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     else if(EDIT_ID.test(t.id))updateSaveBar(true);});
   document.addEventListener('focusout',function(e){if(EDIT_ID.test(e.target.id))updateSaveBar();});
   /* ===== Интерфейс ленты ===== */
-  function lf(c){if(!c._lf)c._lf={date:iso(TODAY),act:'primech',type:TYPES[0],due:off(10),res:RESULTS[0]};return c._lf;}
+  function lf(c){if(!c._lf)c._lf={date:iso(TODAY),act:'primech',type:TYPES[0],due:off(10),res:RESULTS[0],plan:''};return c._lf;}
   function optsHtml(list,sel){return list.map(function(o){var v=typeof o==='string'?o:o.k,t=typeof o==='string'?o:o.t;return '<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>'+esc(t)+'</option>';}).join('');}
   function actFields(p,f){
     var h='';
     if(f.act==='podacha')h+='<label>Тип дела<select class="inl" id="'+p+'Type">'+optsHtml(TYPES,f.type)+'</select></label>';
     if(f.act==='zapros')h+='<label>Ответить до<input class="inl" type="date" id="'+p+'Due" value="'+esc(f.due||'')+'"></label>';
+    if(f.act==='plan')h+=suggF(p+'Plan','Что сделать',OPT.next.map(lab),f.plan||'','','Выберите или введите');
     if(f.act==='reshenie')h+='<label>Результат<select class="inl" id="'+p+'Res">'+optsHtml(RESULTS,f.res)+'</select></label>';
     return h;
   }
   function logForm(c){
     var f=lf(c);
-    return '<div class="card lf"><div class="lfrow"><label>Дата<input class="inl" type="date" id="lfDate" value="'+esc(f.date)+'"></label>'+
+    return '<div class="card lf"><div class="lfrow"><label>'+(f.act==='plan'?'Когда':'Дата')+'<input class="inl" type="date" id="lfDate" value="'+esc(f.date)+'"></label>'+
       '<label>Действие<select class="inl" id="lfAct">'+optsHtml(ACTS,f.act)+'</select></label>'+actFields('lf',f)+'</div>'+
       '<div class="lfrow"><textarea id="noteIn" placeholder="Комментарий… (Ctrl+Enter, чтобы добавить)" aria-label="Комментарий">'+esc(c.draft||'')+'</textarea><button class="btn" id="noteBtn" type="button">Добавить</button></div></div>';
   }
   function entryHtml(c,e){
     if(c._ed&&c._ed.id===e.id){
       var d=c._ed;
-      return '<div class="card lf editing"><div class="lfrow"><label>Дата<input class="inl" type="date" id="leDate" value="'+esc(d.date)+'"></label>'+
+      return '<div class="card lf editing"><div class="lfrow"><label>'+(d.act==='plan'?'Когда':'Дата')+'<input class="inl" type="date" id="leDate" value="'+esc(d.date)+'"></label>'+
         '<label>Действие<select class="inl" id="leAct">'+optsHtml(ACTS.concat([{k:'zakrytie',t:'Дело закрыто'}]),d.act)+'</select></label>'+actFields('le',d)+'</div>'+
         '<div class="lfrow"><textarea id="leText" aria-label="Комментарий">'+esc(d.text)+'</textarea></div>'+
         '<div class="lfrow lfbtn"><button class="btn small" type="button" data-la="save">Сохранить запись</button><button class="btn small ghost" type="button" data-la="cancel">Отмена</button></div></div>';
     }
-    var meta=[];
+    var meta=[],late=e.act==='plan'&&!e.done&&diff(e.date)<0;
     if(e.act==='podacha'&&e.type)meta.push('Тип дела: '+e.type);
     if(e.act==='zapros'&&e.due)meta.push('ответить до '+fmt(e.due));
     if(e.act==='reshenie'&&e.res)meta.push(e.res);
-    return '<div class="le"><div class="led">'+fmt(e.date)+'</div><div class="lea"><span class="pill '+(ACT_PILL[e.act]||'none')+'">'+esc(ACT_NAME[e.act]||e.act)+'</span></div>'+
+    if(e.act==='plan'&&e.plan)meta.push(e.plan);
+    var pn=e.act==='plan'?(e.done?'План выполнен':'Запланировано'):(ACT_NAME[e.act]||e.act);
+    var btn=e.act==='plan'?(e.done?'<button class="ib" type="button" data-la="undo" data-lid="'+esc(e.id)+'" aria-label="Вернуть в план" title="Вернуть в план">↩</button>':'<button class="ib ok" type="button" data-la="done" data-lid="'+esc(e.id)+'" aria-label="Отметить выполненным" title="Выполнено">✓</button>'):'';
+    return '<div class="le'+(late?' late':'')+(e.act==='plan'&&e.done?' done':'')+'"><div class="led">'+fmt(e.date)+(late?'<div class="lem">просрочено</div>':'')+'</div><div class="lea"><span class="pill '+(ACT_PILL[e.act]||'none')+'">'+esc(pn)+'</span></div>'+
       '<div class="let">'+(meta.length?'<div class="lem">'+esc(meta.join(' · '))+'</div>':'')+esc(e.text)+'</div>'+
-      '<div class="leb"><button class="ib" type="button" data-la="edit" data-lid="'+esc(e.id)+'" aria-label="Изменить запись" title="Изменить">✎</button><button class="ib del" type="button" data-la="del" data-lid="'+esc(e.id)+'" aria-label="Удалить запись" title="Удалить">×</button></div></div>';
+      '<div class="leb">'+btn+'<button class="ib" type="button" data-la="edit" data-lid="'+esc(e.id)+'" aria-label="Изменить запись" title="Изменить">✎</button><button class="ib del" type="button" data-la="del" data-lid="'+esc(e.id)+'" aria-label="Удалить запись" title="Удалить">×</button></div></div>';
   }
   function logHtml(c){
-    var h='<h3 class="sec">История дела</h3>'+closeBar(c)+logForm(c),L=sortedLog(c).reverse();
-    h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>';
+    var h='<h3 class="sec">История дела</h3>'+closeBar(c)+logForm(c),P=openPlans(c),L=sortedLog(c).reverse().filter(function(e){return !(e.act==='plan'&&!e.done);});
+    if(P.length)h+='<h3 class="sec">Запланировано</h3><div class="card lelist">'+P.map(function(e){return entryHtml(c,e);}).join('')+'</div>';
+    h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':(P.length?'':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>');
     return h;
   }
   function lfChange(c,id,v){
     var st=id.charAt(1)==='f'?lf(c):c._ed;if(!st)return;
     var k=id.slice(2);
-    if(k==='Date')st.date=v;else if(k==='Act'){st.act=v;render();return;}else if(k==='Type')st.type=v;else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
+    if(k==='Date')st.date=v;else if(k==='Plan')st.plan=v.trim();else if(k==='Act'){if(v==='plan'&&st.date<=iso(TODAY))st.date=off(7);else if(v!=='plan'&&st.date>iso(TODAY))st.date=iso(TODAY);st.act=v;render();return;}else if(k==='Type')st.type=v;else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
   }
   function addEntry(){
     var c=byId(active);if(!c)return;var f=lf(c),txt=$('noteIn').value.trim();
     if(!f.date){toast('Укажите дату');return;}
     if(f.act==='primech'&&!txt){toast('Напишите комментарий');return;}
     if(f.act==='zapros'&&!f.due){toast('Укажите, до какого числа нужно ответить');return;}
-    var x={};if(f.act==='podacha')x.type=f.type;if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
+    if(f.act==='plan'&&!f.plan&&!txt){toast('Напишите, что нужно сделать');return;}
+    var x={};if(f.act==='plan')x.plan=f.plan;if(f.act==='podacha')x.type=f.type;if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
     c.log.push(mkLog(f.act,f.date,txt,x));c.cs=caseOf(c);c.draft='';c._lf=null;render();toast('Запись добавлена');
     var n=$('noteIn');if(n)n.focus();
   }
@@ -971,13 +978,14 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var c=byId(active);if(!c)return;
     var e=c.log.filter(function(z){return z.id===lid;})[0];
     if(a==='start'){lf(c).act='podacha';render();var n=$('noteIn');if(n)n.focus();return;}
-    if(a==='edit'&&e){c._ed={id:e.id,date:e.date,act:e.act,text:e.text||'',type:e.type||TYPES[0],due:e.due||e.date,res:e.res||RESULTS[0]};render();return;}
+    if(a==='edit'&&e){c._ed={id:e.id,date:e.date,act:e.act,text:e.text||'',type:e.type||TYPES[0],due:e.due||e.date,res:e.res||RESULTS[0],plan:e.plan||'',done:!!e.done};render();return;}
+    if((a==='done'||a==='undo')&&e){e.done=(a==='done');c.cs=caseOf(c);render();toast(e.done?'Отмечено выполненным':'Возвращено в план');return;}
     if(a==='cancel'){c._ed=null;render();return;}
     if(a==='save'&&c._ed){
       var d=c._ed,t=c.log.filter(function(z){return z.id===d.id;})[0];if(!t)return;
       if(!d.date){toast('Укажите дату');return;}
       if(d.act==='zapros'&&!d.due){toast('Укажите, до какого числа нужно ответить');return;}
-      t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.type;delete t.due;delete t.res;
+      t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.type;delete t.due;delete t.res;delete t.plan;t.done=d.act==='plan'&&!!d.done;if(d.act==='plan')t.plan=(d.plan||'').trim();
       if(d.act==='podacha')t.type=d.type;if(d.act==='zapros')t.due=d.due;if(d.act==='reshenie')t.res=d.res;
       c._ed=null;c.cs=caseOf(c);render();toast('Запись сохранена');return;}
     if(a==='del'&&e){if(!confirm('Удалить запись «'+(ACT_NAME[e.act]||e.act)+'» от '+fmt(e.date)+'?'))return;
