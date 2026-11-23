@@ -649,9 +649,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     h+='</div>';
     h+=cardFields(c,dv);
     h+=logHtml(c);
-    h+='<div class="card">'+remindersHtml(c)+'</div>';
     var rn=notes().filter(function(x){return x.cid===c.id&&x.kind==='client';})[0];
     if(rn){h+='<h3 class="sec">Напоминание клиенту</h3>'+feedCard(rn);}
+    h+='<div class="card">'+remindersHtml(c)+'</div>';
     $('main').innerHTML=h;
     var m=$('main');m.scrollTop=m.scrollTop;
   }
