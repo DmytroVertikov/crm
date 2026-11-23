@@ -244,13 +244,13 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .le.late .led .lem{color:#c0392b}.le.done{opacity:.6}.ib.ok:hover{color:#2e7d4f;border-color:#2e7d4f}
 .cats{order:-1;display:flex;flex-wrap:wrap;gap:6px;flex-basis:100%}.cat{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}.cat:hover{border-color:var(--accent)}.cat.on{background:var(--accent);border-color:var(--accent);color:#fff}
 /* Цветовые акценты крупных блоков карточки */
-:root{--tb-blue:#EAF2FF;--ta-blue:#3B6FD4;--tb-green:#EAF6EF;--ta-green:#2E8B57;--tb-grey:#F1F3F5;--ta-grey:#8A949C}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tb-blue:#1a2a40;--ta-blue:#6ea0ff;--tb-green:#173028;--ta-green:#5fbf8c;--tb-grey:#202a30;--ta-grey:#7b8a94}}
-:root[data-theme="dark"]{--tb-blue:#1a2a40;--ta-blue:#6ea0ff;--tb-green:#173028;--ta-green:#5fbf8c;--tb-grey:#202a30;--ta-grey:#7b8a94}
+:root{--tb-blue:#EAF2FF;--ta-blue:#3B6FD4;--tb-green:#EAF6EF;--ta-green:#2E8B57;--tb-violet:#F1EEFA;--ta-violet:#7B68C9}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tb-blue:#1a2a40;--ta-blue:#6ea0ff;--tb-green:#173028;--ta-green:#5fbf8c;--tb-violet:#262238;--ta-violet:#a897ee}}
+:root[data-theme="dark"]{--tb-blue:#1a2a40;--ta-blue:#6ea0ff;--tb-green:#173028;--ta-green:#5fbf8c;--tb-violet:#262238;--ta-violet:#a897ee}
 .tint{border-left:4px solid var(--ta);background:var(--tb)}
 .tint h4{color:var(--ink)}
-.tint-blue{--tb:var(--tb-blue);--ta:var(--ta-blue)}.tint-green{--tb:var(--tb-green);--ta:var(--ta-green)}.tint-grey{--tb:var(--tb-grey);--ta:var(--ta-grey)}
-.tint-grey{margin-bottom:12px}
+.tint-blue{--tb:var(--tb-blue);--ta:var(--ta-blue)}.tint-green{--tb:var(--tb-green);--ta:var(--ta-green)}.tint-violet{--tb:var(--tb-violet);--ta:var(--ta-violet)}
+.tint-violet{margin-bottom:12px}
 .tint-blue,.tint-green{padding:14px 14px 16px}
 .tint-blue h4,.tint-green h4{font-size:14px;font-weight:600;text-transform:none;letter-spacing:0;margin-bottom:10px}
 </style>
@@ -620,7 +620,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function parseDMY(t){var m=/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/.exec((t||'').trim());if(!m)return undefined;
     var d=new Date(+m[3],+m[2]-1,+m[1]);return d.getMonth()===+m[2]-1&&d.getDate()===+m[1]?iso(d):undefined;}
   function headHtml(c){
-    var h='<section class="box tint tint-grey"><h4>Личные данные</h4><div class="client-head"><label>Фамилия и имя<input class="client-name" id="fName" value="'+esc(c.name)+'" aria-label="Фамилия и имя"></label>';
+    var h='<section class="box tint tint-violet"><h4>Личные данные</h4><div class="client-head"><label>Фамилия и имя<input class="client-name" id="fName" value="'+esc(c.name)+'" aria-label="Фамилия и имя"></label>';
     h+='<label>Гражданство<input class="inl cb" id="fNat" data-sugg="1" data-dl="dl_fNat" value="'+esc(natLabel(c.nat))+'" placeholder="'+PH+'" autocomplete="off">'+dlOpts('fNat',COUNTRIES.map(function(x){return x[1];}))+'</label>';
     h+='<label class="client-nie">NIE<input class="inl" id="fNie" value="'+esc(c.nie)+'" placeholder="X1234567L" maxlength="10" autocomplete="off"></label>';
     h+='<label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label>';
