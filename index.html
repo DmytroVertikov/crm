@@ -648,10 +648,10 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     h+='<div class="meta"><span class="pill '+st.k+'">'+esc(st.t)+'</span>';
     h+='</div>';
     h+=cardFields(c,dv);
+    h+=logHtml(c);
     h+='<div class="card">'+remindersHtml(c)+'</div>';
     var rn=notes().filter(function(x){return x.cid===c.id&&x.kind==='client';})[0];
     if(rn){h+='<h3 class="sec">Напоминание клиенту</h3>'+feedCard(rn);}
-    h+=logHtml(c);
     $('main').innerHTML=h;
     var m=$('main');m.scrollTop=m.scrollTop;
   }
