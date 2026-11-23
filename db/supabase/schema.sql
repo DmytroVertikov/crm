@@ -76,10 +76,12 @@ create table if not exists public.case_log (
   id bigint generated always as identity primary key,
   client_id bigint not null references public.clients(id) on delete cascade,
   entry_date date not null,
-  action text not null,              -- podacha | zapros | otvet | reshenie | zvonok | soobshenie | vstrecha | primech | zakrytie | plan
+  action text not null,              -- podacha | zapros | otvet | reshenie | zvonok_out | zvonok_in | msg_out | msg_in | vstrecha | (устар.: zvonok, soobshenie) | primech | zakrytie | plan
   comment text not null default '',
   due_date date,                     -- для zapros: ответить до
   result text,                       -- для reshenie: Одобрено / Отказ / ...
+  channel text,                      -- для общения: канал связи
+  outcome text,                      -- для общения: результат (необязательно)
   plan text,                         -- для plan: что сделать (запись на будущую дату entry_date)
   done boolean not null default false -- для plan: выполнено
 );
