@@ -23,7 +23,7 @@ create table public.clients (
 create table public.cases (
   id           bigint generated always as identity primary key,
   client_id    bigint not null references public.clients(id) on delete cascade,
-  type         text not null check (type in ('Первичная подача','Продление','Модификация','Воссоединение семьи')),
+  type         text,  -- устарело: тип дела убран из приложения
   filed        date not null,
   req_received date,
   req_due      date,
@@ -80,7 +80,6 @@ create table if not exists public.case_log (
   comment text not null default '',
   due_date date,                     -- для zapros: ответить до
   result text,                       -- для reshenie: Одобрено / Отказ / ...
-  case_type text,                    -- для podacha: тип дела
   plan text,                         -- для plan: что сделать (запись на будущую дату entry_date)
   done boolean not null default false -- для plan: выполнено
 );

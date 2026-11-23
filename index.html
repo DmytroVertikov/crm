@@ -297,7 +297,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function days(n){return n+' '+plural(n,'день','дня','дней');}
   function $(id){return document.getElementById(id);}
 
-  var TYPES=['Первичная подача','Продление','Модификация','Воссоединение семьи'];
   var nextNum=1042,nextId=20;
   function N(t,text,d){return {t:t,text:text,date:off(d)};}
   /* ===== Лента дела: единый журнал «дата, действие, комментарий» =====
@@ -314,7 +313,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function caseOf(c){
     var cs=null;
     sortedLog(c).forEach(function(e){
-      if(e.act==='podacha'){cs={type:e.type||TYPES[0],filed:e.date,reqRecv:null,reqDue:null,answered:null,result:null};}
+      if(e.act==='podacha'){cs={filed:e.date,reqRecv:null,reqDue:null,answered:null,result:null};}
       else if(e.act==='zakrytie'){cs=null;}
       else if(cs&&!cs.result){
         if(e.act==='zapros'){cs.reqRecv=e.date;cs.reqDue=e.due||e.date;cs.answered=null;}
@@ -334,7 +333,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       if(/^Тип дела изменён/.test(tx))return;
       if(/^(Открыто дело|Пришёл запрос|Ответ на запрос|Решение: )/.test(tx)){
         if(k)return;
-        if(/^Открыто дело/.test(tx)){var mt=tx.match(/Открыто дело: (.*?), подано/);L.push(mkLog('podacha',d,'',{type:mt?mt[1]:TYPES[0]}));}
+        if(/^Открыто дело/.test(tx))L.push(mkLog('podacha',d,''));
         else if(/^Пришёл запрос/.test(tx))L.push(mkLog('zapros',d,'',{due:parseRU(tx)||d}));
         else if(/^Ответ на запрос/.test(tx))L.push(mkLog('otvet',d,''));
         else L.push(mkLog('reshenie',d,'',{res:tx.replace(/^Решение: /,'').replace(/\.$/,'')}));
@@ -343,7 +342,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       L.push(mkLog('primech',d,tx));
     });
     if(k){
-      L.push(mkLog('podacha',k.filed,'',{type:k.type}));
+      L.push(mkLog('podacha',k.filed,''));
       if(k.reqRecv)L.push(mkLog('zapros',k.reqRecv,'',{due:k.reqDue||k.reqRecv}));
       if(k.answered)L.push(mkLog('otvet',k.answered,''));
       if(k.result)L.push(mkLog('reshenie',k.result.date,'',{res:k.result.text}));
@@ -409,9 +408,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     c=persisted(c);
     var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
     var cs=caseOf(c);
-    var k=cs?{client_id:c.id,type:cs.type,filed:cs.filed,req_received:cs.reqRecv||null,req_due:cs.reqDue||null,
+    var k=cs?{client_id:c.id,type:null,filed:cs.filed,req_received:cs.reqRecv||null,req_due:cs.reqDue||null,
       answered:cs.answered||null,result_text:cs.result?cs.result.text:null,result_date:cs.result?cs.result.date:null}:null;
-    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,case_type:e.type||null,plan:e.plan||null,done:!!e.done};});
+    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,plan:e.plan||null,done:!!e.done};});
     return {cl:cl,k:k,n:n};
   }
   function fromRemote(cl,lg){
@@ -419,7 +418,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
         log:lg.filter(function(z){return z.client_id===r.id;}).sort(function(x,y){return x.id-y.id;}).map(function(z){
           var e={id:'r'+z.id,date:z.entry_date,act:z.action,text:z.comment||''};
-          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.case_type)e.type=z.case_type;if(z.plan)e.plan=z.plan;e.done=!!z.done;return e;})};
+          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.plan)e.plan=z.plan;e.done=!!z.done;return e;})};
     });
     out.forEach(normClient);
     return out;
@@ -491,7 +490,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
       if(s==='answer'){var d=diff(c.cs.reqDue);
         if(d<=10)out.push({id:c.id+'-req',cid:c.id,sev:d<0?'crit':d<=3?'warn':'info',left:d,kind:'internal',
           title:c.name+': ответить на запрос',
-          text:(d<0?'Срок истёк '+days(-d)+' назад ('+fmt(c.cs.reqDue)+').':'Срок ответа '+fmt(c.cs.reqDue)+', осталось '+days(d)+'.')+' Дело №'+c.num+', '+c.cs.type.toLowerCase()+'.'});}
+          text:(d<0?'Срок истёк '+days(-d)+' назад ('+fmt(c.cs.reqDue)+').':'Срок ответа '+fmt(c.cs.reqDue)+', осталось '+days(d)+'.')+' Дело №'+c.num+'.'});}
       if(!c.cs&&e!==null&&e<=120){
         var tier=e<0?'x':e<=30?'30':e<=60?'60':e<=90?'90':'120';
         var msg=e<0?'Здравствуйте, '+first(c)+'! Срок вашей резиденции истёк '+fmt(c.expiry)+'. Нужно срочно связаться и понять, что можно сделать. Напишите, когда удобно говорить.'
@@ -538,7 +537,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     h+=list.length?list.map(function(c){
       var st=status(c),sp=stepOf(c),ld=lastDate(c);
       return '<button class="item'+(active===c.id?' active':'')+'" type="button" data-open="'+c.id+'"><div class="r1"><span class="nm">'+esc(c.name)+'</span><span class="dt">'+(ld?fmtS(ld):'')+'</span></div>'+
-        '<div class="r2">№'+c.num+' · '+(c.cs?esc(c.cs.type):'нет открытого дела')+'</div>'+
+        '<div class="r2">№'+c.num+' · '+(c.cs?'дело открыто':'нет открытого дела')+'</div>'+
         '<div class="r3"><span class="step-t '+sp.k+'">'+esc(sp.t)+'</span><span class="pill '+st.k+'">'+esc(st.t)+'</span></div></button>';
     }).join(''):'<div class="empty">Никого не найдено</div>';
     $('list').innerHTML=h;
@@ -893,7 +892,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(skipChange)return;
     var id=e.target.id;
     if(EDIT_ID.test(id))beginEdit(c);
-    if(/^l[fe](Date|Act|Type|Due|Res|Plan)$/.test(id))lfChange(c,id,e.target.value);
+    if(/^l[fe](Date|Act|Due|Res|Plan)$/.test(id))lfChange(c,id,e.target.value);
         if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
     if(id==='fPhone'){c.phone=e.target.value.trim();render();}
     function setEnum(key,list){
@@ -920,7 +919,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     else if(EDIT_ID.test(t.id))updateSaveBar(true);});
   document.addEventListener('focusout',function(e){if(EDIT_ID.test(e.target.id))updateSaveBar();});
   /* ===== Интерфейс ленты ===== */
-  function lf(c){if(!c._lf)c._lf={date:iso(TODAY),act:'primech',type:TYPES[0],due:off(10),res:RESULTS[0],plan:''};return c._lf;}
+  function lf(c){if(!c._lf)c._lf={date:iso(TODAY),act:'primech',due:off(10),res:RESULTS[0],plan:''};return c._lf;}
   function optsHtml(list,sel){return list.map(function(o){var v=typeof o==='string'?o:o.k,t=typeof o==='string'?o:o.t;return '<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>'+esc(t)+'</option>';}).join('');}
   function actPick(p,act,edit){
     var cat=catOf(act),acts=cat.acts.slice();if(edit&&cat.k==='delo')acts.push('zakrytie');
@@ -930,7 +929,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   }
   function actFields(p,f){
     var h='';
-    if(f.act==='podacha')h+='<label>Тип дела<select class="inl" id="'+p+'Type">'+optsHtml(TYPES,f.type)+'</select></label>';
     if(f.act==='zapros')h+='<label>Ответить до<input class="inl" type="date" id="'+p+'Due" value="'+esc(f.due||'')+'"></label>';
     if(f.act==='plan')h+=suggF(p+'Plan','Что сделать',OPT.next.map(lab),f.plan||'','','Выберите или введите');
     if(f.act==='reshenie')h+='<label>Результат<select class="inl" id="'+p+'Res">'+optsHtml(RESULTS,f.res)+'</select></label>';
@@ -951,7 +949,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
         '<div class="lfrow lfbtn"><button class="btn small" type="button" data-la="save">Сохранить запись</button><button class="btn small ghost" type="button" data-la="cancel">Отмена</button></div></div>';
     }
     var meta=[],late=e.act==='plan'&&!e.done&&diff(e.date)<0;
-    if(e.act==='podacha'&&e.type)meta.push('Тип дела: '+e.type);
     if(e.act==='zapros'&&e.due)meta.push('ответить до '+fmt(e.due));
     if(e.act==='reshenie'&&e.res)meta.push(e.res);
     if(e.act==='plan'&&e.plan)meta.push(e.plan);
@@ -974,7 +971,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function lfChange(c,id,v){
     var st=id.charAt(1)==='f'?lf(c):c._ed;if(!st)return;
     var k=id.slice(2);
-    if(k==='Date')st.date=v;else if(k==='Plan')st.plan=v.trim();else if(k==='Act'){setAct(st,v);render();return;}else if(k==='Type')st.type=v;else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
+    if(k==='Date')st.date=v;else if(k==='Plan')st.plan=v.trim();else if(k==='Act'){setAct(st,v);render();return;}else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
   }
   function addEntry(){
     var c=byId(active);if(!c)return;var f=lf(c),txt=$('noteIn').value.trim();
@@ -982,7 +979,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     if(f.act==='primech'&&!txt){toast('Напишите комментарий');return;}
     if(f.act==='zapros'&&!f.due){toast('Укажите, до какого числа нужно ответить');return;}
     if(f.act==='plan'&&!f.plan&&!txt){toast('Напишите, что нужно сделать');return;}
-    var x={};if(f.act==='plan')x.plan=f.plan;if(f.act==='podacha')x.type=f.type;if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
+    var x={};if(f.act==='plan')x.plan=f.plan;if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
     c.log.push(mkLog(f.act,f.date,txt,x));c.cs=caseOf(c);c.draft='';c._lf=null;render();toast('Запись добавлена');
     var n=$('noteIn');if(n)n.focus();
   }
@@ -990,15 +987,15 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var c=byId(active);if(!c)return;
     var e=c.log.filter(function(z){return z.id===lid;})[0];
     if(a==='start'){lf(c).act='podacha';render();var n=$('noteIn');if(n)n.focus();return;}
-    if(a==='edit'&&e){c._ed={id:e.id,date:e.date,act:e.act,text:e.text||'',type:e.type||TYPES[0],due:e.due||e.date,res:e.res||RESULTS[0],plan:e.plan||'',done:!!e.done};render();return;}
+    if(a==='edit'&&e){c._ed={id:e.id,date:e.date,act:e.act,text:e.text||'',due:e.due||e.date,res:e.res||RESULTS[0],plan:e.plan||'',done:!!e.done};render();return;}
     if((a==='done'||a==='undo')&&e){e.done=(a==='done');c.cs=caseOf(c);render();toast(e.done?'Отмечено выполненным':'Возвращено в план');return;}
     if(a==='cancel'){c._ed=null;render();return;}
     if(a==='save'&&c._ed){
       var d=c._ed,t=c.log.filter(function(z){return z.id===d.id;})[0];if(!t)return;
       if(!d.date){toast('Укажите дату');return;}
       if(d.act==='zapros'&&!d.due){toast('Укажите, до какого числа нужно ответить');return;}
-      t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.type;delete t.due;delete t.res;delete t.plan;t.done=d.act==='plan'&&!!d.done;if(d.act==='plan')t.plan=(d.plan||'').trim();
-      if(d.act==='podacha')t.type=d.type;if(d.act==='zapros')t.due=d.due;if(d.act==='reshenie')t.res=d.res;
+      t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.due;delete t.res;delete t.plan;t.done=d.act==='plan'&&!!d.done;if(d.act==='plan')t.plan=(d.plan||'').trim();
+      if(d.act==='zapros')t.due=d.due;if(d.act==='reshenie')t.res=d.res;
       c._ed=null;c.cs=caseOf(c);render();toast('Запись сохранена');return;}
     if(a==='del'&&e){if(!confirm('Удалить запись «'+(ACT_NAME[e.act]||e.act)+'» от '+fmt(e.date)+'?'))return;
       c.log=c.log.filter(function(z){return z.id!==lid;});if(c._ed&&c._ed.id===lid)c._ed=null;c.cs=caseOf(c);render();toast('Запись удалена');}
