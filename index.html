@@ -215,11 +215,22 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .toast.show{opacity:1}
 @media (max-width:1100px){.body,.body.noright{grid-template-columns:300px minmax(0,1fr)}.right{display:none}.tiles{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:760px){
-  html,body{height:auto}.app{height:auto}
-  .body,.body.noright{display:block}
-  .left{border-right:0;border-bottom:1px solid var(--line)}.list{max-height:320px}
-  .right{display:block;border-left:0;border-top:1px solid var(--line)}
-  .scroll{padding:16px}.savebar{padding:12px 16px}
+  /* Мобильная версия: два экрана — список клиентов или карточка; прокручивается только содержимое */
+  .app{height:100vh;height:100dvh}
+  .top{padding:8px 12px;gap:8px}.mnav,.mmore{display:inline-block}.mnav{margin-left:auto}
+  .demo,.tools{display:none}.top.open .tools{display:flex;flex-basis:100%;margin-left:0}.top.open .demo{display:inline-block;flex-basis:100%}
+  .body,.body.noright{display:block;flex:1;min-height:0}
+  .left,.center{height:100%}.left{border-right:0}
+  body:not([data-mv="list"]) .left{display:none}body[data-mv="list"] .center{display:none}
+  .list{max-height:none;flex:1;min-height:0;overflow-y:auto}
+  .right{display:none}
+  .scroll{padding:14px 12px}.savebar{padding:10px 12px}
+  .client-head>label:first-child{grid-column:1/-1}.client-name{max-width:none;width:100%;font-size:20px}
+  .btn,.inl,select,input,textarea{font-size:16px}.btn{min-height:42px}.btn.small{min-height:36px}
+  .tab{padding:10px 12px}.ib{width:38px;height:38px}.cat{padding:9px 14px}
+  .toast{bottom:84px}
+}
+@media (min-width:761px){.mnav,.mmore{display:none}}
 }
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 .lf{padding:12px 14px;margin-bottom:12px}
@@ -261,6 +272,8 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 <div class="app">
   <div class="top">
     <span class="logo">Резиденции</span>
+    <button class="btn small mnav" id="mList" type="button">☰ Клиенты</button>
+    <button class="btn small ghost mmore" id="mMore" type="button" aria-label="Меню" aria-expanded="false">⋯</button>
     <span class="demo" id="demoPill">Демо-данные. Ничего не отправляется</span>
     <span class="tools">
       <span class="stat" id="stat"></span>
@@ -518,7 +531,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function urgentCount(){return notes().filter(function(x){return x.sev==='crit'&&!sent[x.id];}).length;}
 
   function toast(t){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},1800);}
-  function openTab(id){if(tabs.indexOf(id)<0)tabs.push(id);active=id;render();}
+  function setMv(v){document.body.setAttribute('data-mv',v);var b=$('mList');if(b)b.textContent=v==='list'?'← К карточке':'☰ Клиенты';}
+  function showMain(){setMv('main');var m=$('main');if(m)m.scrollTop=0;}
+  function openTab(id){if(tabs.indexOf(id)<0)tabs.push(id);active=id;render();showMain();}
 
   /* Left: filters and list */
   var FILTERS=[['all','Все'],['urgent','Срочные'],['answer','Ждут ответа'],['renew','Продление'],['work','В работе'],['closed','Закрытые']];
@@ -692,6 +707,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   $('main').addEventListener('click',function(e){var t=e.target.closest('[data-tf]');if(!t)return;var f=t.getAttribute('data-tf');applyFilter(filter===f?'all':f);});
   $('q').addEventListener('input',renderList);
   $('addBtn').addEventListener('click',function(){adding=true;renderList();});
+  $('mList').addEventListener('click',function(){setMv(document.body.getAttribute('data-mv')==='list'?'main':'list');});
+  $('mMore').addEventListener('click',function(){var t=document.querySelector('.top'),o=t.classList.toggle('open');this.setAttribute('aria-expanded',o);});
+  setMv('main');
   $('list').addEventListener('keydown',function(e){
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
@@ -701,7 +719,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
-    var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict')?v:+v;render();return;}
+    var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict')?v:+v;render();showMain();return;}
     var sb=e.target.closest('[data-sent]');if(sb){var sid=sb.getAttribute('data-sent');sent[sid]=!sent[sid];render();return;}
     var cb=e.target.closest('[data-copy]');if(cb){var n=notes().filter(function(z){return z.id===cb.getAttribute('data-copy');})[0];
       try{navigator.clipboard.writeText(n.msg).then(function(){toast('Текст скопирован');},function(){toast('Не удалось скопировать');});}catch(err){toast('Не удалось скопировать');}return;}
