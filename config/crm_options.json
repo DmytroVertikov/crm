@@ -282,7 +282,7 @@
       "id": "estado_expediente",
       "order": 3,
       "name_es": "Estado del expediente",
-      "name_ru": "Стадия рассмотрения дела",
+      "name_ru": "Текущий этап",
       "type": "enum",
       "required": false,
       "options": [
