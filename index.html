@@ -242,6 +242,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .ib.del:hover{color:#c0392b;border-color:#c0392b}
 .btn.ghost{background:transparent;color:inherit;border:1px solid var(--line)}
 .le.late .led .lem{color:#c0392b}.le.done{opacity:.6}.ib.ok:hover{color:#2e7d4f;border-color:#2e7d4f}
+.cats{order:-1;display:flex;flex-wrap:wrap;gap:6px;flex-basis:100%}.cat{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}.cat:hover{border-color:var(--accent)}.cat.on{background:var(--accent);border-color:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -301,9 +302,10 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function N(t,text,d){return {t:t,text:text,date:off(d)};}
   /* ===== Лента дела: единый журнал «дата, действие, комментарий» =====
      Статус дела, шаги и напоминания считаются из записей ленты (c.cs — только расчётный кэш). */
-  var ACTS=[{k:'podacha',t:'Подача'},{k:'zapros',t:'Запрос документов'},{k:'otvet',t:'Ответ на запрос'},{k:'reshenie',t:'Решение'},{k:'zvonok',t:'Звонок'},{k:'primech',t:'Примечание'},{k:'plan',t:'Запланировать'}];
-  var ACT_NAME={podacha:'Подача',zapros:'Запрос документов',otvet:'Ответ на запрос',reshenie:'Решение',zvonok:'Звонок',primech:'Примечание',zakrytie:'Дело закрыто',plan:'Запланировано'};
-  var ACT_PILL={podacha:'info',zapros:'warn',otvet:'info',reshenie:'good',zvonok:'none',primech:'none',zakrytie:'good',plan:'warn'};
+  var CATS=[{k:'delo',t:'Событие по делу',i:'⚖',acts:['podacha','zapros','otvet','reshenie']},{k:'obsh',t:'Общение',i:'☎',acts:['zvonok','soobshenie','vstrecha']},{k:'zam',t:'Заметка',i:'✎',acts:['primech']},{k:'plan',t:'Запланировать',i:'◷',acts:['plan']}];
+  function catOf(a){return CATS.filter(function(x){return x.acts.indexOf(a)>=0||(x.k==='delo'&&a==='zakrytie');})[0]||CATS[2];}
+  var ACT_NAME={podacha:'Подача',zapros:'Запрос документов',otvet:'Ответ на запрос',reshenie:'Решение',zvonok:'Звонок',soobshenie:'Сообщение',vstrecha:'Встреча',primech:'Заметка',zakrytie:'Дело закрыто',plan:'Запланировано'};
+  var ACT_PILL={podacha:'info',zapros:'warn',otvet:'info',reshenie:'good',zvonok:'none',soobshenie:'none',vstrecha:'none',primech:'none',zakrytie:'good',plan:'warn'};
   var RESULTS=['Одобрено','Отказ','Нужны дополнительные документы'];
   function newLid(){return 'l'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
   function mkLog(act,date,text,x){var e={id:newLid(),date:date,act:act,text:text||''};if(x)for(var k in x)if(x[k]!=null&&x[k]!=='')e[k]=x[k];return e;}
@@ -920,6 +922,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   /* ===== Интерфейс ленты ===== */
   function lf(c){if(!c._lf)c._lf={date:iso(TODAY),act:'primech',type:TYPES[0],due:off(10),res:RESULTS[0],plan:''};return c._lf;}
   function optsHtml(list,sel){return list.map(function(o){var v=typeof o==='string'?o:o.k,t=typeof o==='string'?o:o.t;return '<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>'+esc(t)+'</option>';}).join('');}
+  function actPick(p,act,edit){
+    var cat=catOf(act),acts=cat.acts.slice();if(edit&&cat.k==='delo')acts.push('zakrytie');
+    var h='<div class="cats" role="group" aria-label="Тип записи">'+CATS.map(function(x){return '<button type="button" class="cat'+(x.k===cat.k?' on':'')+'" data-lcat="'+p+'|'+x.k+'" aria-pressed="'+(x.k===cat.k)+'"><span aria-hidden="true">'+x.i+'</span> '+x.t+'</button>';}).join('')+'</div>';
+    if(acts.length>1)h+='<label>Действие<select class="inl" id="'+p+'Act">'+acts.map(function(k){return '<option value="'+k+'"'+(k===act?' selected':'')+'>'+esc(ACT_NAME[k])+'</option>';}).join('')+'</select></label>';
+    return h;
+  }
   function actFields(p,f){
     var h='';
     if(f.act==='podacha')h+='<label>Тип дела<select class="inl" id="'+p+'Type">'+optsHtml(TYPES,f.type)+'</select></label>';
@@ -931,14 +939,14 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function logForm(c){
     var f=lf(c);
     return '<div class="card lf"><div class="lfrow"><label>'+(f.act==='plan'?'Когда':'Дата')+'<input class="inl" type="date" id="lfDate" value="'+esc(f.date)+'"></label>'+
-      '<label>Действие<select class="inl" id="lfAct">'+optsHtml(ACTS,f.act)+'</select></label>'+actFields('lf',f)+'</div>'+
+      actPick('lf',f.act,false)+actFields('lf',f)+'</div>'+
       '<div class="lfrow"><textarea id="noteIn" placeholder="Комментарий… (Ctrl+Enter, чтобы добавить)" aria-label="Комментарий">'+esc(c.draft||'')+'</textarea><button class="btn" id="noteBtn" type="button">Добавить</button></div></div>';
   }
   function entryHtml(c,e){
     if(c._ed&&c._ed.id===e.id){
       var d=c._ed;
       return '<div class="card lf editing"><div class="lfrow"><label>'+(d.act==='plan'?'Когда':'Дата')+'<input class="inl" type="date" id="leDate" value="'+esc(d.date)+'"></label>'+
-        '<label>Действие<select class="inl" id="leAct">'+optsHtml(ACTS.concat([{k:'zakrytie',t:'Дело закрыто'}]),d.act)+'</select></label>'+actFields('le',d)+'</div>'+
+        actPick('le',d.act,true)+actFields('le',d)+'</div>'+
         '<div class="lfrow"><textarea id="leText" aria-label="Комментарий">'+esc(d.text)+'</textarea></div>'+
         '<div class="lfrow lfbtn"><button class="btn small" type="button" data-la="save">Сохранить запись</button><button class="btn small ghost" type="button" data-la="cancel">Отмена</button></div></div>';
     }
@@ -959,10 +967,14 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':(P.length?'':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>');
     return h;
   }
+  function setAct(st,v){if(v==='plan'&&st.date<=iso(TODAY))st.date=off(7);else if(v!=='plan'&&st.date>iso(TODAY))st.date=iso(TODAY);st.act=v;}
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-lcat]');if(!b||typeof active!=='number')return;
+    var c=byId(active),pr=b.getAttribute('data-lcat').split('|'),st=pr[0]==='lf'?lf(c):c._ed,cat=CATS.filter(function(x){return x.k===pr[1];})[0];
+    if(!c||!st||!cat)return;if(catOf(st.act).k!==cat.k)setAct(st,cat.acts[0]);render();});
   function lfChange(c,id,v){
     var st=id.charAt(1)==='f'?lf(c):c._ed;if(!st)return;
     var k=id.slice(2);
-    if(k==='Date')st.date=v;else if(k==='Plan')st.plan=v.trim();else if(k==='Act'){if(v==='plan'&&st.date<=iso(TODAY))st.date=off(7);else if(v!=='plan'&&st.date>iso(TODAY))st.date=iso(TODAY);st.act=v;render();return;}else if(k==='Type')st.type=v;else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
+    if(k==='Date')st.date=v;else if(k==='Plan')st.plan=v.trim();else if(k==='Act'){setAct(st,v);render();return;}else if(k==='Type')st.type=v;else if(k==='Due')st.due=v;else if(k==='Res')st.res=v;
   }
   function addEntry(){
     var c=byId(active);if(!c)return;var f=lf(c),txt=$('noteIn').value.trim();
