@@ -266,6 +266,10 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .tint-blue h4,.tint-green h4{font-size:14px;font-weight:600;text-transform:none;letter-spacing:0;margin-bottom:10px}
 .tint .inl{background-color:var(--surface)}
 .lea .pill{white-space:normal;display:inline-block;line-height:1.35;text-align:left;padding-top:3px;padding-bottom:3px}
+.lfc{align-items:stretch}
+.lfc #noteBtn{align-self:stretch;min-width:132px;padding:0 24px;border-radius:10px;font-size:15px;font-weight:600;letter-spacing:.01em;box-shadow:0 1px 2px rgba(0,0,0,.12);transition:filter .15s,transform .05s}
+.lfc #noteBtn:hover{filter:brightness(1.1)}.lfc #noteBtn:active{transform:translateY(1px)}
+@media (max-width:760px){.lfc #noteBtn{flex:1 1 100%;min-height:46px}}
 </style>
 </head>
 <body>
@@ -972,7 +976,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
     var f=lf(c);
     return '<div class="card lf"><div class="lfrow"><label>'+(f.act==='plan'?'Когда':'Дата')+'<input class="inl" type="date" id="lfDate" value="'+esc(f.date)+'"></label>'+
       actPick('lf',f.act,false)+actFields('lf',f)+'</div>'+
-      '<div class="lfrow"><textarea id="noteIn" placeholder="Комментарий… (Ctrl+Enter, чтобы добавить)" aria-label="Комментарий">'+esc(c.draft||'')+'</textarea><button class="btn" id="noteBtn" type="button">Добавить</button></div></div>';
+      '<div class="lfrow lfc"><textarea id="noteIn" placeholder="Комментарий" aria-label="Комментарий">'+esc(c.draft||'')+'</textarea><button class="btn" id="noteBtn" type="button">Добавить</button></div></div>';
   }
   function entryHtml(c,e){
     if(c._ed&&c._ed.id===e.id){
