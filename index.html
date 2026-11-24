@@ -270,6 +270,22 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .lfc #noteBtn{align-self:stretch;min-width:132px;padding:0 24px;border-radius:10px;font-size:15px;font-weight:600;letter-spacing:.01em;box-shadow:0 1px 2px rgba(0,0,0,.12);transition:filter .15s,transform .05s}
 .lfc #noteBtn:hover{filter:brightness(1.1)}.lfc #noteBtn:active{transform:translateY(1px)}
 @media (max-width:760px){.lfc #noteBtn{flex:1 1 100%;min-height:46px}}
+/* Журнал: крупнее и контрастнее */
+h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:700;margin:24px 0 10px}
+.lf .inl,.lf textarea{border-color:var(--line2,#9aa7ad)}
+.lf textarea::placeholder,.lf .inl::placeholder{color:var(--muted);opacity:1}
+.lfrow label{font-size:14px;font-weight:600;color:var(--ink)}
+.cat{font-size:15px;color:var(--ink);border-color:var(--line2,#9aa7ad)}
+.cat.on{color:#fff}
+.led{font-size:14px;color:var(--ink)}.let{font-size:15px}.lem{font-size:14px}
+@media (max-width:760px){
+  .lf{padding:14px}
+  .cat{font-size:16px;padding:10px 14px}
+  .lfrow label{font-size:15px}
+  .lf .inl,.lf textarea{font-size:17px;min-height:48px}
+  .lf textarea{min-height:96px}
+  .let{font-size:16px}.led{font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -330,7 +346,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
   function N(t,text,d){return {t:t,text:text,date:off(d)};}
   /* ===== Лента дела: единый журнал «дата, действие, комментарий» =====
      Статус дела, шаги и напоминания считаются из записей ленты (c.cs — только расчётный кэш). */
-  var CATS=[{k:'delo',t:'Событие по делу',i:'⚖',acts:['podacha','zapros','otvet','reshenie']},{k:'obsh',t:'Общение',i:'☎',acts:['zvonok_out','zvonok_in','msg_out','msg_in','vstrecha'],old:['zvonok','soobshenie']},{k:'zam',t:'Заметка',i:'✎',acts:['primech']},{k:'plan',t:'Запланировать',i:'◷',acts:['plan']}];
+  var CATS=[{k:'delo',t:'Событие по делу',i:'⚖\uFE0E',acts:['podacha','zapros','otvet','reshenie']},{k:'obsh',t:'Общение',i:'☎\uFE0E',acts:['zvonok_out','zvonok_in','msg_out','msg_in','vstrecha'],old:['zvonok','soobshenie']},{k:'zam',t:'Заметка',i:'✎',acts:['primech']},{k:'plan',t:'Запланировать',i:'◷',acts:['plan']}];
   function catOf(a){return CATS.filter(function(x){return x.acts.indexOf(a)>=0||(x.old&&x.old.indexOf(a)>=0)||(x.k==='delo'&&a==='zakrytie');})[0]||CATS[2];}
   var CHANNELS=['Телефон','WhatsApp','Telegram','Email','Личная встреча'];
   var OUTCOMES=['Вопрос решён','Клиент предоставит документы','Ожидаем ответ клиента','Требуется повторный контакт','Другое'];
