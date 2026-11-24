@@ -168,6 +168,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .client-head .wa-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:20px}
 .client-head .wa-chk{flex-direction:row;align-items:center;gap:5px;font-weight:500;color:var(--muted);cursor:pointer}
 .client-head .wa-chk input{width:auto;margin:0}
+.btn.wa-btn{background:#1a8f4c;color:#fff;text-decoration:none;display:inline-block}
 .wa-link{font-size:12px;font-weight:600;color:#1a8f4c;text-decoration:none}
 .wa-link:hover{text-decoration:underline}
 .phone-add{white-space:nowrap;align-self:end;width:100%;min-height:34px}
@@ -620,10 +621,10 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
 
   /* Center: Today */
   function feedCard(x){
-    var d=!!sent[x.id];
+    var d=!!sent[x.id],cl=x.kind==='client'?byId(x.cid):null,wl=cl&&cl.wa?waLink(cl.phone):'';
     return '<div class="card note '+x.sev+(d?' done':'')+'"><h5>'+esc(x.title)+'</h5><div class="small-t">'+esc(x.text)+'</div>'+
       (x.kind==='client'?'<div class="msg"><small>Сообщение клиенту в WhatsApp или Telegram</small>'+esc(x.msg)+'</div>':'<div style="height:8px"></div>')+
-      '<div class="actions">'+(x.kind==='client'?'<button class="btn small" data-copy="'+x.id+'" type="button">Скопировать текст</button><button class="btn small ghost" data-sent="'+x.id+'" type="button">'+(d?'Вернуть в список':'Отметить отправленным')+'</button>':'')+
+      '<div class="actions">'+(x.kind==='client'?(wl?'<a class="btn small wa-btn" href="'+wl+'?text='+encodeURIComponent(x.msg)+'" target="_blank" rel="noopener">Открыть в WhatsApp</a>':'')+'<button class="btn small'+(wl?' ghost':'')+'" data-copy="'+x.id+'" type="button">Скопировать текст</button><button class="btn small ghost" data-sent="'+x.id+'" type="button">'+(d?'Вернуть в список':'Отметить отправленным')+'</button>':'')+
       '<button class="btn small ghost" data-open="'+x.cid+'" type="button">Открыть клиента</button></div></div>';
   }
   function renderToday(){
