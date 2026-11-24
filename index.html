@@ -548,11 +548,11 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
         if(d<=10)out.push({id:c.id+'-req',cid:c.id,sev:d<0?'crit':d<=3?'warn':'info',left:d,kind:'internal',
           title:c.name+': ответить на запрос',
           text:(d<0?'Срок истёк '+days(-d)+' назад ('+fmt(c.cs.reqDue)+').':'Срок ответа '+fmt(c.cs.reqDue)+', осталось '+days(d)+'.')+' Дело №'+c.num+'.'});}
-      if(!c.cs&&e!==null&&e<=120){
-        var tier=e<0?'x':e<=30?'30':e<=60?'60':e<=90?'90':'120';
+      if(!c.cs&&e!==null&&e<=60){
+        var tier=e<0?'x':'60';
         var msg=e<0?'Здравствуйте, '+first(c)+'! Срок вашей резиденции истёк '+fmt(c.expiry)+'. Нужно срочно связаться и понять, что можно сделать. Напишите, когда удобно говорить.'
           :'Здравствуйте, '+first(c)+'! Ваша резиденция действует до '+fmt(c.expiry)+' (осталось '+days(e)+'). Пора готовить документы на продление. Напишите, когда удобно обсудить.';
-        out.push({id:c.id+'-exp-'+tier,cid:c.id,sev:e<=30?'crit':e<=60?'warn':'info',left:e,kind:'client',
+        out.push({id:c.id+'-exp-'+tier,cid:c.id,sev:e<=30?'crit':'warn',left:e,kind:'client',
           title:c.name+': подходит срок резиденции',text:e<0?'Срок истёк '+days(-e)+' назад.':'Осталось '+days(e)+' (до '+fmt(c.expiry)+'). Подача на продление ещё не открыта.',msg:msg});}
     });
     out.sort(function(a,b){return a.left-b.left;});return out;
@@ -681,8 +681,8 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function remindersHtml(c){
     var h='<h3 class="sec">Напоминания о сроке (Avisos de vencimiento)</h3>';
     if(!c.expiry)return h+'<div class="small-t">Укажите срок действия, и система сама рассчитает напоминания.</div>';
-    var e=diff(c.expiry),cur=-1;[120,90,60,30].forEach(function(t,i){if(e<=t)cur=i;});
-    h+='<table class="reminders-table"><thead><tr><th>Срок</th><th>Дата</th></tr></thead><tbody>'+[120,90,60,30].map(function(t,i){
+    var e=diff(c.expiry),cur=-1;[60].forEach(function(t,i){if(e<=t)cur=i;});
+    h+='<table class="reminders-table"><thead><tr><th>Срок</th><th>Дата</th></tr></thead><tbody>'+[60].map(function(t,i){
       var d=iso(new Date(parse(c.expiry).getTime()-t*DAY)),past=diff(d)<0&&i!==cur;
       return '<tr class="rem'+(past?' past':'')+(i===cur?' cur':'')+'"><td>За '+t+' дней</td><td>'+fmt(d)+'</td></tr>';}).join('')+'</tbody></table>';
     return h+'<div class="small-t" style="margin-top:6px">Напоминания клиенту создаются в эти даты, если дело продления не открыто.</div>';
