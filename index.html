@@ -524,7 +524,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(s==='wait')return {k:'info',t:'Ждём ответа ведомства',f:'wait'};
     if(s==='closed')return {k:'good',t:'Решение: '+c.cs.result.text,f:'closed'};
     if(e!==null&&e<0)return {k:'crit',t:'Срок резиденции истёк',f:'renew'};
-    if(e!==null&&e<=120)return {k:e<=45?'crit':'warn',t:'Пора подавать на продление',f:'renew'};
+    if(e!==null&&e<=60)return {k:e<=30?'crit':'warn',t:'Пора подавать на продление',f:'renew'};
     return {k:'none',t:'Всё в порядке',f:'ok'};
   }
   function derived(c){
@@ -533,7 +533,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(s==='wait')return {t:'Ждать ответа ведомства',k:'ok'};
     if(s==='decision')return {t:'Ждать решения',k:'ok'};
     if(s==='closed')return {t:c.cs.result.text==='Одобрено'?'Обновить срок резиденции':'Обсудить результат с клиентом',k:'warn'};
-    if(e!==null&&e<=120)return {t:'Связаться с клиентом: готовим продление',k:e<=45?'crit':'warn'};
+    if(e!==null&&e<=60)return {t:'Связаться с клиентом: готовим продление',k:e<=30?'crit':'warn'};
     return null;
   }
   function openPlans(c){return sortedLog(c).filter(function(e){return e.act==='plan'&&!e.done;});}
@@ -625,7 +625,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     function tile(f,cls,label){return '<button class="tile '+cls+'" type="button" data-tf="'+f+'" aria-pressed="'+(filter===f)+'"><b>'+cnt(f)+'</b><span>'+label+'</span></button>';}
     var n=notes().filter(feedOk);
     var h='<h1>Сегодня</h1><p class="sub">'+TODAY.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'. Нажмите на плитку, чтобы отфильтровать список слева и ленту.</p>';
-    h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или меньше 45 дней')+tile('answer','warn','Ждут нашего ответа ведомству')+tile('renew','info','Резиденция истекает за 120 дней')+tile('work','good','Дел в работе')+'</div>';
+    h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или 30 дней и меньше')+tile('answer','warn','Ждут нашего ответа ведомству')+tile('renew','info','Резиденция истекает за 60 дней')+tile('work','good','Дел в работе')+'</div>';
     h+='<h3 class="sec">Что требует внимания</h3>';
     h+=n.length?n.map(feedCard).join(''):'<div class="empty">Срочных задач нет</div>';
     $('main').innerHTML=h;
