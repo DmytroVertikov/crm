@@ -164,6 +164,12 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .client-head input,.client-head select{width:100%;min-width:0}
 .client-name{font:700 22px/1.2 var(--font);letter-spacing:-.01em;background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 7px;margin-left:-7px;min-width:180px;max-width:100%}
 .client-name:hover,.client-name:focus{background:var(--bg);border-color:var(--line)}
+.phone-cell{display:flex;flex-direction:column;gap:3px}
+.client-head .wa-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:20px}
+.client-head .wa-chk{flex-direction:row;align-items:center;gap:5px;font-weight:500;color:var(--muted);cursor:pointer}
+.client-head .wa-chk input{width:auto;margin:0}
+.wa-link{font-size:12px;font-weight:600;color:#1a8f4c;text-decoration:none}
+.wa-link:hover{text-decoration:underline}
 .phone-add{white-space:nowrap;align-self:end;width:100%;min-height:34px}
 .profile-hint{color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;margin:6px 0 4px}
 .g2 .inl{border-color:var(--line2)}
@@ -427,14 +433,14 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     {id:9,num:1008,name:'Фёдорова Ксения',phone:'+34 611 000 109',expiry:off(400),cs:{type:'Продление',filed:off(-150),reqRecv:off(-100),reqDue:off(-85),answered:off(-90),result:{text:'Одобрено',date:off(-10)}},notes:[]},
     {id:10,num:1040,name:'Тихонов Павел',phone:'+34 611 000 110',expiry:off(150),cs:{type:'Первичная подача',filed:off(-30),reqRecv:off(-3),reqDue:off(9),answered:null,result:null},notes:[]}
   ];
-  clients.forEach(function(c){c.draft='';c.goal='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.nat='RU';c.nie='';c.phones2=[];normClient(c);});
+  clients.forEach(function(c){c.draft='';c.goal='';c.situ='';c.tipo='';c.estado='';c.doc='';c.otroDoc='';c.nat='RU';c.nie='';c.phones2=[];c.wa=false;normClient(c);});
   var sent={},tabs=[],active='today',filter='all',adding=false;
 
   /* Storage: this browser only. Backup file moves data between devices. */
   var KEY='crm-residencias-v1',demo=true,storeOk=true,savedAt=null;
   /* Поля карточки правятся «в черновике»: пока не нажато «Сохранить», в память браузера и в Supabase уходит прежнее значение. */
-  var EF=['name','phone','expiry','situ','tipo','estado','doc','otroDoc','goal','nat','nie','phones2'];
-  var EDIT_ID=/^(fName|fPhone|fGoal|fEstado|fSitu|fTipo|fDoc|fOtro|fNat|fNie|fExp|fPh2_\d+)$/;
+  var EF=['name','phone','wa','expiry','situ','tipo','estado','doc','otroDoc','goal','nat','nie','phones2'];
+  var EDIT_ID=/^(fName|fPhone|fGoal|fEstado|fSitu|fTipo|fDoc|fOtro|fNat|fNie|fExp|fWa|fPh2_\d+)$/;
   function beginEdit(c){if(!c._snap){var o={};EF.forEach(function(k){o[k]=k==='phones2'?(c[k]||[]).slice():c[k];});c._snap=o;}}
   function isDirty(c){return !!c._snap&&EF.some(function(k){return JSON.stringify(c[k])!==JSON.stringify(c._snap[k]);});}
   function persisted(c){var o={};for(var k in c)if(k.charAt(0)!=='_'&&k!=='cs')o[k]=c[k];if(c._snap)EF.forEach(function(k){o[k]=k==='phones2'?c._snap[k].slice():c._snap[k];});return o;}
@@ -442,7 +448,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function apply(o){
     if(!o||!Array.isArray(o.clients))throw new Error('bad');
     clients=o.clients.filter(function(c){return c&&Number.isInteger(+c.id);});clients.forEach(function(c){c.id=+c.id;c.num=+c.num||0;});sent=o.sent||{};nextNum=o.nextNum||1001;nextId=o.nextId||100;demo=!!o.demo;
-    clients.forEach(function(c){normClient(c);c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];if(c.id>=nextId)nextId=c.id+1;});
+    clients.forEach(function(c){normClient(c);c.draft='';c.phone=c.phone||'';c.goal=c.goal||'';c.situ=c.situ||'';c.tipo=c.tipo||'';c.estado=c.estado||'';c.doc=c.doc||'';c.otroDoc=c.otroDoc||'';c.nat=c.nat||'';c.nie=c.nie||'';c.phones2=c.phones2||[];c.wa=!!c.wa;if(c.id>=nextId)nextId=c.id+1;});
     tabs=[];active='today';filter='all';
   }
   function save(){try{localStorage.setItem(KEY,snapshot());storeOk=true;savedAt=new Date();}catch(e){storeOk=false;}remoteSoon();}
@@ -463,7 +469,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function toRows(c){
     c=persisted(c);
-    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,email:null,permit_expiry:c.expiry||null,next_step:'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
+    var cl={id:c.id,num:c.num,name:c.name,phone:c.phone||null,phone_whatsapp:!!c.wa,email:null,permit_expiry:c.expiry||null,next_step:'',situacion:c.situ||null,tipo_autorizacion:c.tipo||null,estado_expediente:c.estado||null,tipo_documento:c.doc||null,otro_documento:c.otroDoc||null,goal:c.goal||'',next_note:'',nationality:c.nat||null,nie:c.nie||null,extra_phones:c.phones2.filter(Boolean)};
     var cs=caseOf(c);
     var k=cs?{client_id:c.id,type:null,filed:cs.filed,req_received:cs.reqRecv||null,req_due:cs.reqDue||null,
       answered:cs.answered||null,result_text:cs.result?cs.result.text:null,result_date:cs.result?cs.result.date:null}:null;
@@ -472,7 +478,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function fromRemote(cl,lg){
     var out=cl.map(function(r){
-      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',expiry:r.permit_expiry,draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
+      return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',wa:!!r.phone_whatsapp,expiry:r.permit_expiry,draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
         log:lg.filter(function(z){return z.client_id===r.id;}).sort(function(x,y){return x.id-y.id;}).map(function(z){
           var e={id:'r'+z.id,date:z.entry_date,act:z.action,text:z.comment||''};
           if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.plan)e.plan=z.plan;if(z.channel)e.chan=z.channel;if(z.outcome)e.out=z.outcome;e.done=!!z.done;return e;})};
@@ -668,11 +674,18 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function parseDMY(t){var m=/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/.exec((t||'').trim());if(!m)return undefined;
     var d=new Date(+m[3],+m[2]-1,+m[1]);return d.getMonth()===+m[2]-1&&d.getDate()===+m[1]?iso(d):undefined;}
+  function waLink(ph){
+    var t=String(ph||'').trim(),d=t.replace(/\D/g,'');
+    if(!d)return '';
+    if(t.charAt(0)!=='+'){if(d.indexOf('00')===0)d=d.slice(2);else if(d.length===9)d='34'+d;}
+    return d.length>=8&&d.length<=15?'https://wa.me/'+d:'';
+  }
   function headHtml(c){
     var h='<section class="box tint tint-violet"><h4>Личные данные</h4><div class="client-head"><label>Фамилия и имя<input class="client-name" id="fName" value="'+esc(c.name)+'" aria-label="Фамилия и имя"></label>';
     h+='<label>Гражданство<input class="inl cb" id="fNat" data-sugg="1" data-dl="dl_fNat" value="'+esc(natLabel(c.nat))+'" placeholder="'+PH+'" autocomplete="off">'+dlOpts('fNat',COUNTRIES.map(function(x){return x[1];}))+'</label>';
     h+='<label class="client-nie">NIE<input class="inl" id="fNie" value="'+esc(c.nie)+'" placeholder="X1234567L" maxlength="10" autocomplete="off"></label>';
-    h+='<label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label>';
+    var wl=waLink(c.phone);
+    h+='<div class="phone-cell"><label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label><div class="wa-row"><label class="wa-chk"><input type="checkbox" id="fWa"'+(c.wa?' checked':'')+'> WhatsApp на этом номере</label>'+(c.wa&&wl?'<a class="wa-link" href="'+wl+'" target="_blank" rel="noopener">Открыть чат</a>':'')+'</div></div>';
     c.phones2.forEach(function(p,i){h+='<label>Телефон '+(i+2)+'<input class="inl" id="fPh2_'+i+'" value="'+esc(p)+'" placeholder="Оставьте пустым, чтобы удалить"></label>';});
     h+='<button class="btn small ghost phone-add" type="button" data-act="addphone">+ Другой телефон</button></div>';
     var w=nieCheck(c.nie);if(w)h+='<div class="profile-hint" id="nieHelp">'+esc(w)+'</div>';
@@ -744,7 +757,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
     if(e.key==='Enter'){var v=e.target.value.trim();if(!v)return;
-      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],draft:'',goal:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[]};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
+      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],draft:'',goal:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[],wa:false};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
@@ -958,6 +971,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(/^l[fe](Date|Act|Due|Res|Plan|Chan|Out)$/.test(id))lfChange(c,id,e.target.value);
         if(id==='fName'&&e.target.value.trim()){c.name=e.target.value.trim();render();}
     if(id==='fPhone'){c.phone=e.target.value.trim();render();}
+    if(id==='fWa'){c.wa=e.target.checked;render();}
     function setEnum(key,list){
       var t=e.target.value.trim();
       if(!t){c[key]='';}

@@ -4,6 +4,7 @@ create table public.clients (
   num           integer not null unique,
   name          text not null,
   phone         text,
+  phone_whatsapp boolean not null default false,  -- на основном номере есть WhatsApp
   email         text,
   permit_expiry date,
   next_step     text not null default '',

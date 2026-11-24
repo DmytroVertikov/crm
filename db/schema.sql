@@ -7,6 +7,7 @@ CREATE TABLE clients (
   num          INTEGER NOT NULL UNIQUE,          -- номер клиента
   name         TEXT    NOT NULL,
   phone        TEXT,
+  phone_whatsapp INTEGER NOT NULL DEFAULT 0,  -- на основном номере есть WhatsApp
   email        TEXT,
   permit_expiry DATE,                            -- срок действия текущего вида на жительство
   next_step    TEXT    NOT NULL DEFAULT ''       -- ручной «следующий шаг»
