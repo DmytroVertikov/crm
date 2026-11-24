@@ -297,6 +297,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     <span class="demo" id="demoPill">Демо-данные. Ничего не отправляется</span>
     <span class="tools">
       <span class="stat" id="stat"></span>
+      <button class="btn small ghost" id="dictBtn" type="button">Справочник</button>
       <button class="btn small ghost" id="expBtn" type="button">Сохранить копию</button>
       <button class="btn small ghost" id="impBtn" type="button">Загрузить копию</button>
       <button class="btn small ghost" id="clrBtn" type="button">Очистить базу</button>
@@ -598,7 +599,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function renderTabs(){
     var u=urgentCount();
     var h='<button class="tab" role="tab" type="button" data-tab="today" aria-selected="'+(active==='today')+'">Сегодня'+(u?' <span class="bd">'+u+'</span>':'')+'</button>';
-    h+='<button class="tab" role="tab" type="button" data-tab="dict" aria-selected="'+(active==='dict')+'">Справочник'+(dictDirty()?' <span class="dot" title="Не сохранено">●</span>':'')+'</button>';
+    if(active==='dict'||dictDirty())h+='<button class="tab" role="tab" type="button" data-tab="dict" aria-selected="'+(active==='dict')+'">Справочник'+(dictDirty()?' <span class="dot" title="Не сохранено">●</span>':'')+'</button>';
     tabs.forEach(function(id){var c=byId(id);h+='<span class="tab" role="tab" tabindex="0" data-tab="'+id+'" aria-selected="'+(active===id)+'">'+esc(c.name)+(isDirty(c)?' <span class="dot" title="Не сохранено">●</span>':'')+' <button class="x" type="button" data-close="'+id+'" aria-label="Закрыть вкладку">×</button></span>';});
     $('tabs').innerHTML=h;
   }
@@ -727,6 +728,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   $('main').addEventListener('click',function(e){var t=e.target.closest('[data-tf]');if(!t)return;var f=t.getAttribute('data-tf');applyFilter(filter===f?'all':f);});
   $('q').addEventListener('input',renderList);
   $('addBtn').addEventListener('click',function(){adding=true;renderList();});
+  $('dictBtn').addEventListener('click',function(){active='dict';document.querySelector('.top').classList.remove('open');render();showMain();});
   $('mList').addEventListener('click',function(){setMv(document.body.getAttribute('data-mv')==='list'?'main':'list');});
   $('mMore').addEventListener('click',function(){var t=document.querySelector('.top'),o=t.classList.toggle('open');this.setAttribute('aria-expanded',o);});
   setMv('main');
