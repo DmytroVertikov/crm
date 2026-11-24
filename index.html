@@ -555,6 +555,16 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
         if(d<=10)out.push({id:c.id+'-req',cid:c.id,sev:d<0?'crit':d<=3?'warn':'info',left:d,kind:'internal',
           title:c.name+': ответить на запрос',
           text:(d<0?'Срок истёк '+days(-d)+' назад ('+fmt(c.cs.reqDue)+').':'Срок ответа '+fmt(c.cs.reqDue)+', осталось '+days(d)+'.')+' Дело №'+c.num+'.'});}
+      if(c.cs&&e!==null&&e<=60){
+        out.push({id:c.id+'-expc-'+(e<0?'x':'60'),cid:c.id,sev:e<=30?'crit':'warn',left:e,kind:'internal',
+          title:c.name+': срок резиденции при открытом деле',
+          text:(e<0?'Срок истёк '+days(-e)+' назад.':'Осталось '+days(e)+' (до '+fmt(c.expiry)+').')+' '+(stage(c)==='closed'?'По делу есть решение, но срок в карточке не обновлён.':'Дело открыто: '+status(c).t.toLowerCase()+'.')});}
+      openPlans(c).forEach(function(p){
+        var d=diff(p.date);if(d>0)return;
+        var o=OPT.next.filter(function(x){return lab(x)===p.plan;})[0];
+        out.push({id:c.id+'-plan-'+p.id,cid:c.id,lid:p.id,sev:d<0?'crit':'warn',left:d,kind:'task',
+          title:c.name+': '+(o?o.ru:(p.plan||p.text||'задача')),
+          text:(d<0?'Просрочено на '+days(-d)+' (срок '+fmt(p.date)+').':'Срок сегодня.')+(p.plan&&p.text?' '+p.text:'')});});
       if(!c.cs&&e!==null&&e<=60){
         var tier=e<0?'x':'60';
         var msg=e<0?'Здравствуйте, '+first(c)+'! Срок вашей резиденции истёк '+fmt(c.expiry)+'. Нужно срочно связаться и понять, что можно сделать. Напишите, когда удобно говорить.'
@@ -576,9 +586,9 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function matches(c,f){
     var st=status(c),s=stage(c);
     if(f==='all')return true;
-    if(f==='urgent')return st.k==='crit';
+    if(f==='urgent')return st.k==='crit'||(!!c.cs&&!!c.expiry&&diff(c.expiry)<=30);
     if(f==='answer')return s==='answer';
-    if(f==='renew')return st.f==='renew';
+    if(f==='renew')return st.f==='renew'||(!!c.expiry&&diff(c.expiry)<=60&&!!c.cs);
     if(f==='work')return s!=='none'&&s!=='closed';
     if(f==='closed')return st.f==='closed';
     return true;
@@ -586,7 +596,8 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function feedOk(x){
     if(filter==='urgent')return x.sev==='crit';
     if(filter==='answer')return /-req$/.test(x.id);
-    if(filter==='renew')return x.kind==='client';
+    if(filter==='renew')return /-exp/.test(x.id);
+    if(filter==='work'||filter==='closed'){var cc=byId(x.cid);return !!cc&&matches(cc,filter);}
     return true;
   }
   function renderSeg(){$('seg').innerHTML=FILTERS.map(function(f){return '<button class="chip" type="button" data-f="'+f[0]+'" aria-pressed="'+(filter===f[0])+'">'+f[1]+'</button>';}).join('');}
@@ -603,7 +614,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     h+=list.length?list.map(function(c){
       var st=status(c),sp=stepOf(c),ld=lastDate(c);
       return '<button class="item'+(active===c.id?' active':'')+'" type="button" data-open="'+c.id+'"><div class="r1"><span class="nm">'+esc(c.name)+'</span><span class="dt">'+(ld?fmtS(ld):'')+'</span></div>'+
-        '<div class="r2">№'+c.num+' · '+(c.cs?'дело открыто':'нет открытого дела')+'</div>'+
+        '<div class="r2">№'+c.num+' · '+(c.cs?'дело открыто':'нет открытого дела')+(c.cs&&c.expiry&&diff(c.expiry)<=60?' · срок ВНЖ: '+(diff(c.expiry)<0?'истёк':diff(c.expiry)+' дн.'):'')+'</div>'+
         '<div class="r3"><span class="step-t '+sp.k+'">'+esc(sp.t)+'</span><span class="pill '+st.k+'">'+esc(st.t)+'</span></div></button>';
     }).join(''):'<div class="empty">Никого не найдено</div>';
     $('list').innerHTML=h;
@@ -625,14 +636,15 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     return '<div class="card note '+x.sev+(d?' done':'')+'"><h5>'+esc(x.title)+'</h5><div class="small-t">'+esc(x.text)+'</div>'+
       (x.kind==='client'?'<div class="msg"><small>Сообщение клиенту в WhatsApp или Telegram</small>'+esc(x.msg)+'</div>':'<div style="height:8px"></div>')+
       '<div class="actions">'+(x.kind==='client'?(wl?'<a class="btn small wa-btn" href="'+wl+'?text='+encodeURIComponent(x.msg)+'" target="_blank" rel="noopener">Открыть в WhatsApp</a>':'')+'<button class="btn small'+(wl?' ghost':'')+'" data-copy="'+x.id+'" type="button">Скопировать текст</button><button class="btn small ghost" data-sent="'+x.id+'" type="button">'+(d?'Вернуть в список':'Отметить отправленным')+'</button>':'')+
-      '<button class="btn small ghost" data-open="'+x.cid+'" type="button">Открыть клиента</button></div></div>';
+      (x.kind==='task'?'<button class="btn small" data-tc="'+x.cid+'" data-tl="'+esc(x.lid)+'" type="button">Выполнено</button>':'')+'<button class="btn small ghost" data-open="'+x.cid+'" type="button">Открыть клиента</button></div></div>';
   }
   function renderToday(){
     function cnt(f){return clients.filter(function(c){return matches(c,f);}).length;}
     function tile(f,cls,label){return '<button class="tile '+cls+'" type="button" data-tf="'+f+'" aria-pressed="'+(filter===f)+'"><b>'+cnt(f)+'</b><span>'+label+'</span></button>';}
-    var n=notes().filter(feedOk);
+    var all=notes().filter(feedOk),tk=all.filter(function(x){return x.kind==='task';}),n=all.filter(function(x){return x.kind!=='task';});
     var h='<h1>Сегодня</h1><p class="sub">'+TODAY.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'. Нажмите на плитку, чтобы отфильтровать список слева и ленту.</p>';
     h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или 30 дней и меньше')+tile('answer','warn','Ждут нашего ответа ведомству')+tile('renew','info','Резиденция истекает за 60 дней')+tile('work','good','Дел в работе')+'</div>';
+    if(tk.length||filter==='all')h+='<h3 class="sec">Задачи: просроченные и на сегодня</h3>'+(tk.length?tk.map(feedCard).join(''):'<div class="empty">Задач на сегодня нет</div>');
     h+='<h3 class="sec">Что требует внимания</h3>';
     h+=n.length?n.map(feedCard).join(''):'<div class="empty">Срочных задач нет</div>';
     $('main').innerHTML=h;
@@ -761,6 +773,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
       var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],draft:'',goal:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[],wa:false};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
   });
   document.addEventListener('click',function(e){
+    var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
     var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict')?v:+v;render();showMain();return;}
