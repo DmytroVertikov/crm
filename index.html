@@ -263,6 +263,8 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .lfrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:8px}
 .lfrow:last-child{margin-bottom:0}
 .lfrow label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.lfrow .act-field{flex:0 1 250px;min-width:0;max-width:100%}
+.lfrow .act-field select{width:100%;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .lfrow textarea{flex:1;min-width:220px;resize:vertical;min-height:64px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;color:inherit}
 .lfbtn{gap:8px}
 .lelist{display:flex;flex-direction:column}
@@ -1125,7 +1127,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function actPick(p,act,edit){
     var cat=catOf(act),acts=cat.acts.slice();if(edit&&cat.k==='delo')acts.push('zakrytie');if(acts.indexOf(act)<0)acts.push(act);
     var h='<div class="cats" role="group" aria-label="Тип записи">'+CATS.map(function(x){return '<button type="button" class="cat'+(x.k===cat.k?' on':'')+'" data-lcat="'+p+'|'+x.k+'" aria-pressed="'+(x.k===cat.k)+'"><span aria-hidden="true">'+x.i+'</span> '+x.t+'</button>';}).join('')+'</div>';
-    if(acts.length>1)h+='<label>'+(cat.k==='obsh'?'Тип контакта':'Действие')+'<select class="inl" id="'+p+'Act">'+acts.map(function(k){return '<option value="'+k+'"'+(k===act?' selected':'')+'>'+esc(ACT_NAME[k])+'</option>';}).join('')+'</select></label>';
+    if(acts.length>1)h+='<label class="act-field">'+(cat.k==='obsh'?'Тип контакта':'Действие')+'<select class="inl" id="'+p+'Act">'+acts.map(function(k){return '<option value="'+k+'"'+(k===act?' selected':'')+'>'+esc(ACT_NAME[k])+'</option>';}).join('')+'</select></label>';
     return h;
   }
   function actFields(p,f){
