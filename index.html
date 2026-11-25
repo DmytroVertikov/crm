@@ -112,6 +112,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tab .dot{color:var(--warn);font-size:10px;vertical-align:middle}
 .btn.small{padding:4px 10px;font-size:13px;border-radius:6px}
 .list{flex:1;overflow-y:auto}
+.lt select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink)}
+.newrow label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600}
+.newbtns{display:flex;gap:8px;margin-top:8px}
 .newrow{padding:10px 12px;border-bottom:1px solid var(--line);background:var(--accent-soft)}
 .newrow small{display:block;color:var(--muted);margin-top:4px}
 .item{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:11px 14px;cursor:pointer}
@@ -325,7 +328,8 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     <aside class="left" aria-label="Клиенты">
       <div class="lt">
         <div class="seg" id="seg"></div>
-        <input type="search" id="q" placeholder="Поиск по фамилии или номеру" aria-label="Поиск">
+        <input type="search" id="q" placeholder="Поиск: имя, телефон, NIE, № дела" aria-label="Поиск">
+        <select id="sortSel" aria-label="Сортировка списка"><option value="urg">Сначала срочные</option><option value="old">Давно без активности</option><option value="new">Недавняя активность</option></select>
         <button class="btn" id="addBtn" type="button">+ Новый клиент</button>
       </div>
       <div class="list" id="list"></div>
@@ -608,20 +612,33 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     return true;
   }
   function renderSeg(){$('seg').innerHTML=FILTERS.map(function(f){return '<button class="chip" type="button" data-f="'+f[0]+'" aria-pressed="'+(filter===f[0])+'">'+f[1]+'</button>';}).join('');}
+  var sortMode='urg';
+  /* Поиск: имя и № дела по подстроке, телефон по цифрам (от 3), NIE без пробелов и дефисов. Возвращает пояснение, что совпало. */
+  function qMatch(c,q){
+    var t=q.toLowerCase();if(!t)return '';
+    if(c.name.toLowerCase().indexOf(t)>=0||String(c.num).indexOf(t)>=0)return 'name';
+    var dq=t.replace(/\D/g,'');
+    if(dq.length>=3){var ph=[c.phone].concat(c.phones2||[]);for(var i=0;i<ph.length;i++)if(ph[i]&&ph[i].replace(/\D/g,'').indexOf(dq)>=0)return 'тел. '+ph[i];}
+    var nq=t.replace(/[\s-]/g,'');
+    if(nq.length>=2&&c.nie&&c.nie.toLowerCase().replace(/[\s-]/g,'').indexOf(nq)>=0)return 'NIE '+c.nie;
+    return '';
+  }
   function renderList(){
     var q=$('q').value.trim().toLowerCase();
     var list=clients.filter(function(c){
-      if(q&&c.name.toLowerCase().indexOf(q)<0&&String(c.num).indexOf(q)<0)return false;
+      if(q&&!qMatch(c,q))return false;
       return matches(c,filter);
     });
     var order={crit:0,warn:1,info:2,good:3,none:4};
-    list.sort(function(a,b){return order[status(a).k]-order[status(b).k]||a.num-b.num;});
+    if(sortMode==='old')list.sort(function(a,b){var x=lastDate(a)||'',y=lastDate(b)||'';return x<y?-1:x>y?1:a.num-b.num;});
+    else if(sortMode==='new')list.sort(function(a,b){var x=lastDate(a)||'',y=lastDate(b)||'';return x>y?-1:x<y?1:a.num-b.num;});
+    else list.sort(function(a,b){return order[status(a).k]-order[status(b).k]||a.num-b.num;});
     var h='';
-    if(adding)h+='<div class="newrow"><input id="newName" placeholder="Фамилия и имя, затем Enter" aria-label="Имя нового клиента"><small>Esc, чтобы отменить. Остальное заполните в карточке.</small></div>';
+    if(adding)h+='<div class="newrow"><label>Новый клиент<input id="newName" placeholder="Фамилия и имя" autocomplete="off"></label><div class="newbtns"><button class="btn small" id="newOk" type="button" disabled>Добавить</button><button class="btn small ghost" id="newCancel" type="button">Отмена</button></div><small>Остальное (телефон, NIE, срок резиденции) заполните в карточке. Enter — добавить, Esc — отменить.</small></div>';
     h+=list.length?list.map(function(c){
       var st=status(c),sp=stepOf(c),ld=lastDate(c);
-      return '<button class="item'+(active===c.id?' active':'')+'" type="button" data-open="'+c.id+'"><div class="r1"><span class="nm">'+esc(c.name)+'</span><span class="dt">'+(ld?fmtS(ld):'')+'</span></div>'+
-        '<div class="r2">№'+c.num+' · '+(c.cs?'дело открыто':'нет открытого дела')+(c.cs&&c.expiry&&diff(c.expiry)<=60?' · срок ВНЖ: '+(diff(c.expiry)<0?'истёк':diff(c.expiry)+' дн.'):'')+'</div>'+
+      return '<button class="item'+(active===c.id?' active':'')+'" type="button" data-open="'+c.id+'"><div class="r1"><span class="nm">'+esc(c.name)+'</span><span class="dt">'+(ld?fmtS(ld):(sortMode==='urg'?'':'нет записей'))+'</span></div>'+
+        '<div class="r2">№'+c.num+' · '+(c.cs?'дело открыто':'нет открытого дела')+(c.cs&&c.expiry&&diff(c.expiry)<=60?' · срок ВНЖ: '+(diff(c.expiry)<0?'истёк':diff(c.expiry)+' дн.'):'')+(function(){var m=q?qMatch(c,q):'';return m&&m!=='name'?' · '+esc(m):'';})()+'</div>'+
         '<div class="r3"><span class="step-t '+sp.k+'">'+esc(sp.t)+'</span><span class="pill '+st.k+'">'+esc(st.t)+'</span></div></button>';
     }).join(''):'<div class="empty">Никого не найдено</div>';
     $('list').innerHTML=h;
@@ -782,11 +799,22 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   $('mList').addEventListener('click',function(){setMv(document.body.getAttribute('data-mv')==='list'?'main':'list');});
   $('mMore').addEventListener('click',function(){var t=document.querySelector('.top'),o=t.classList.toggle('open');this.setAttribute('aria-expanded',o);});
   setMv('main');
+  $('sortSel').addEventListener('change',function(){sortMode=this.value;renderList();});
+  $('list').addEventListener('input',function(e){if(e.target.id==='newName'){var b=$('newOk');if(b)b.disabled=!e.target.value.trim();}});
+  $('list').addEventListener('click',function(e){
+    if(e.target.id==='newCancel'){adding=false;renderList();}
+    if(e.target.id==='newOk')createClient(($('newName')||{value:''}).value.trim());
+  });
+  function createClient(v){
+    if(!v)return;
+    var low=v.toLowerCase();
+    if(clients.some(function(x){return x.name.trim().toLowerCase()===low;})&&!confirm('Клиент «'+v+'» уже есть в списке. Добавить ещё одного с таким же именем?'))return;
+      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],draft:'',goal:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[],wa:false};clients.push(c);adding=false;$('q').value='';openTab(c.id);toast('Клиент добавлен');var ph=$('fPhone');if(ph)ph.focus();
+  }
   $('list').addEventListener('keydown',function(e){
     if(e.target.id!=='newName')return;
     if(e.key==='Escape'){adding=false;renderList();}
-    if(e.key==='Enter'){var v=e.target.value.trim();if(!v)return;
-      var c={id:nextId++,num:nextNum++,name:v,phone:'',expiry:null,cs:null,log:[],draft:'',goal:'',situ:'',tipo:'',estado:'',doc:'',otroDoc:'',nat:'',nie:'',phones2:[],wa:false};clients.push(c);adding=false;openTab(c.id);toast('Клиент добавлен');}
+    if(e.key==='Enter'){e.preventDefault();createClient(e.target.value.trim());}
   });
   document.addEventListener('click',function(e){
     var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
