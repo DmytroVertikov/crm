@@ -1032,10 +1032,10 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   /* Кнопки срабатывают на mousedown: иначе поле теряет фокус, карточка перерисовывается и клик по кнопке пропадает. */
   document.addEventListener('mousedown',function(e){
-    var b=e.target.closest&&e.target.closest('[data-card]');if(!b||b.disabled)return;
+    var b=e.target.closest&&e.target.closest('#savebar [data-card]');if(!b||b.disabled)return;
     e.preventDefault();if(b.getAttribute('data-card')==='save')saveCard();else cancelCard();});
   document.addEventListener('click',function(e){
-    var b=e.target.closest&&e.target.closest('[data-card]');if(!b||b.disabled||e.detail!==0)return;
+    var b=e.target.closest&&e.target.closest('#savebar [data-card]');if(!b||b.disabled||e.detail!==0)return;
     if(b.getAttribute('data-card')==='save')saveCard();else cancelCard();});
   document.addEventListener('keydown',function(e){
     if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')&&(typeof active==='number'||active==='dict')){e.preventDefault();saveCard();}});
