@@ -366,8 +366,8 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function N(t,text,d){return {t:t,text:text,date:off(d)};}
   /* ===== Лента дела: единый журнал «дата, действие, комментарий» =====
      Статус дела, шаги и напоминания считаются из записей ленты (c.cs — только расчётный кэш). */
-  var CATS=[{k:'delo',t:'Событие по делу',i:'⚖\uFE0E',acts:['podacha','zapros','otvet','reshenie']},{k:'obsh',t:'Общение',i:'☎\uFE0E',acts:['zvonok_out','zvonok_in','msg_out','msg_in','vstrecha'],old:['zvonok','soobshenie']},{k:'zam',t:'Заметка',i:'✎',acts:['primech']},{k:'plan',t:'Запланировать',i:'◷',acts:['plan']}];
-  function catOf(a){return CATS.filter(function(x){return x.acts.indexOf(a)>=0||(x.old&&x.old.indexOf(a)>=0)||(x.k==='delo'&&a==='zakrytie');})[0]||CATS[2];}
+  var CATS=[{k:'delo',t:'Событие по делу',i:'⚖\uFE0E',acts:['podacha','zapros','otvet','reshenie']},{k:'obsh',t:'Общение',i:'☎\uFE0E',acts:['zvonok_out','zvonok_in','msg_out','msg_in','vstrecha'],old:['zvonok','soobshenie']},{k:'plan',t:'Запланировать',i:'◷',acts:['plan']},{k:'zam',t:'Заметка',i:'✎',acts:['primech']}];
+  function catOf(a){return CATS.filter(function(x){return x.acts.indexOf(a)>=0||(x.old&&x.old.indexOf(a)>=0)||(x.k==='delo'&&a==='zakrytie');})[0]||CATS.filter(function(x){return x.k==='zam';})[0];}
   var CHANNELS=['Телефон','WhatsApp','Telegram','Email','Личная встреча'];
   var OUTCOMES=['Вопрос решён','Клиент предоставит документы','Ожидаем ответ клиента','Требуется повторный контакт','Другое'];
   var CHAN_DEF={zvonok_out:'Телефон',zvonok_in:'Телефон',msg_out:'WhatsApp',msg_in:'WhatsApp',vstrecha:'Личная встреча'};
