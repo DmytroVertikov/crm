@@ -667,7 +667,9 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
         '<div class="r3"><span class="step-t '+sp.k+'">'+esc(sp.t)+'</span><span class="pill '+st.k+'">'+esc(st.t)+'</span></div></button>';
     }).join(''):'<div class="empty">Никого не найдено</div>';
     $('list').innerHTML=h;
-    if(adding){var ni=$('newName');if(ni)ni.focus();}
+    if(adding){var ni=$('newName');if(ni){var mobile=window.matchMedia('(max-width:760px)').matches;
+      if(mobile)$('list').scrollTop=0;ni.focus();
+      if(mobile)setTimeout(function(){if(ni.isConnected)ni.scrollIntoView({block:'center',behavior:'auto'});},250);}}
   }
 
   /* Tabs */
