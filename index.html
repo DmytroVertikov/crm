@@ -168,6 +168,9 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .fut{margin:10px 0}.fut summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
 .phone-cell{display:flex;flex-direction:column;gap:3px}
 .client-head .wa-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:20px}
+.profile-actions{display:flex;justify-content:flex-end;margin-top:8px}
+.btn.danger{color:var(--crit);border:1px solid var(--crit);background:transparent}
+.btn.danger:hover{background:var(--crit-soft)}
 .client-head .wa-chk{flex-direction:row;align-items:center;gap:5px;font-weight:500;color:var(--muted);cursor:pointer}
 .client-head .wa-chk input{width:auto;margin:0}
 .btn.wa-btn{background:#1a8f4c;color:#fff;text-decoration:none;display:inline-block}
@@ -777,7 +780,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var wl=waLink(c.phone);
     h+='<div class="phone-cell"><label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label><div class="wa-row"><label class="wa-chk"><input type="checkbox" id="fWa"'+(c.wa?' checked':'')+'> WhatsApp на этом номере</label>'+(c.wa&&wl?'<a class="wa-link" href="'+wl+'" target="_blank" rel="noopener">Открыть чат</a>':'')+'</div></div>';
     c.phones2.forEach(function(p,i){h+='<label>Телефон '+(i+2)+'<input class="inl" id="fPh2_'+i+'" value="'+esc(p)+'" placeholder="Оставьте пустым, чтобы удалить"></label>';});
-    h+='<button class="btn small ghost phone-add" type="button" data-act="addphone">+ Другой телефон</button></div>';
+    h+='<button class="btn small ghost phone-add" type="button" data-act="addphone">+ Другой телефон</button></div><div class="profile-actions"><button class="btn small danger" type="button" data-delete-client>Удалить клиента</button></div>';
     var w=nieCheck(c.nie);if(w)h+='<div class="profile-hint" id="nieHelp">'+esc(w)+'</div>';
     return h+'</section>';
   }
@@ -863,6 +866,13 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   });
   document.addEventListener('click',function(e){
     var cd=e.target.closest('[data-card]');if(cd&&!e.target.closest('button,a,input,textarea,select,.msg')){openTab(+cd.getAttribute('data-card'));return;}
+    var del=e.target.closest('[data-delete-client]');if(del&&typeof active==='number'){
+      var dc=byId(active);if(!dc)return;
+      if(!confirm('Удалить клиента «'+dc.name+'» вместе с делами, задачами и записями журнала? Это действие нельзя отменить.'))return;
+      var deletedId=dc.id;clients=clients.filter(function(c){return c.id!==deletedId;});tabs=tabs.filter(function(id){return id!==deletedId;});
+      Object.keys(sent).forEach(function(id){if(id===String(deletedId)||id.indexOf(String(deletedId)+'-')===0)delete sent[id];});
+      adding=false;active=tabs.length?tabs[tabs.length-1]:'today';render();showMain();toast('Клиент удалён');return;
+    }
     var tu=e.target.closest('[data-tu]');if(tu){var uc=byId(+tu.getAttribute('data-tu')),ue=uc&&uc.log.filter(function(z){return z.id===tu.getAttribute('data-tul');})[0];if(ue){ue.done=false;delete ue.dn;uc.cs=caseOf(uc);render();toast('Задача возвращена в работу');}return;}
     var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;te.dn=iso(TODAY);tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
