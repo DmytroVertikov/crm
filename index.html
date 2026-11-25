@@ -319,6 +319,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     <span class="tools">
       <span class="stat" id="stat"></span>
       <button class="btn small ghost" id="dictBtn" type="button">Справочник</button>
+      <button class="btn small ghost" id="dbBtn" type="button">База данных</button>
     </span>
   </div>
   <div class="body noright" id="body">
@@ -679,6 +680,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var u=urgentCount();
     var h='<button class="tab" role="tab" type="button" data-tab="today" aria-selected="'+(active==='today')+'">Сегодня'+(u?' <span class="bd">'+u+'</span>':'')+'</button>';
     if(active==='dict'||dictDirty())h+='<button class="tab" role="tab" type="button" data-tab="dict" aria-selected="'+(active==='dict')+'">Справочник'+(dictDirty()?' <span class="dot" title="Не сохранено">●</span>':'')+'</button>';
+    if(active==='database')h+='<button class="tab" role="tab" type="button" data-tab="database" aria-selected="true">База данных</button>';
     tabs.forEach(function(id){var c=byId(id);h+='<span class="tab" role="tab" tabindex="0" data-tab="'+id+'" aria-selected="'+(active===id)+'">'+esc(c.name)+(isDirty(c)?' <span class="dot" title="Не сохранено">●</span>':'')+' <button class="x" type="button" data-close="'+id+'" aria-label="Закрыть вкладку">×</button></span>';});
     $('tabs').innerHTML=h;
   }
@@ -710,6 +712,12 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     h+='<h3 class="sec">Что требует внимания</h3>';
     h+=n.length?n.map(feedCard).join(''):'<div class="empty">Срочных задач нет</div>';
     $('main').innerHTML=h;
+  }
+
+  function renderDatabase(){
+    $('main').innerHTML='<h1>База данных</h1><p class="sub">Резервное копирование и восстановление данных CRM.</p>'+
+      '<div class="card"><h3 class="sec" style="margin-top:0">Резервная копия</h3><p class="dnote">Сохраните файл с данными клиентов и дел на устройство. Импорт копии заменит текущие данные в CRM.</p><div class="dtools"><button class="btn" id="expBtn" type="button">Сохранить копию в JSON</button><button class="btn ghost" id="impBtn" type="button">Загрузить копию из JSON</button><input type="file" id="impFile" accept=".json,application/json" hidden></div></div>'+
+      '<div class="card"><h3 class="sec" style="margin-top:0">Очистка базы</h3><p class="dnote">Удалит всех клиентов и связанные с ними дела. Это действие синхронизируется с Supabase и не может быть отменено.</p><button class="btn ghost" id="clrBtn" type="button">Очистить базу</button></div>';
   }
 
   /* Center: client card */
@@ -811,10 +819,10 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(remote.state==='ok'){s.className='stat';s.textContent=remote.busy?'Сохраняется в Supabase…':'Сохранено в Supabase'+(remote.at?', '+remote.at.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'');}
     else if(remote.state==='err'){s.className='stat bad';s.textContent='НЕ сохранено в Supabase (нет связи или ошибка). Изменения только в этом браузере. Нажмите, чтобы повторить';}
     else if(storeOk){s.className='stat';s.textContent=savedAt?'Сохранено в этом браузере, '+savedAt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Данные сохраняются в этом браузере';}
-    else{s.className='stat bad';s.textContent='Не сохраняется: браузер блокирует хранилище. Делайте копии в файл';}
+    else{s.className='stat bad';s.textContent='Не сохраняется: браузер блокирует хранилище';}
   }
   function render(){cbClose();renderSeg();renderList();renderTabs();
-    if(active==='today')renderToday();else if(active==='dict')renderDict();else renderClient(byId(active));
+    if(active==='today')renderToday();else if(active==='dict')renderDict();else if(active==='database')renderDatabase();else renderClient(byId(active));
     updateSaveBar();save();renderTop();}
   function refreshAround(){renderList();renderTabs();}
 
@@ -825,6 +833,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   $('q').addEventListener('input',renderList);
   $('addBtn').addEventListener('click',function(){adding=true;renderList();});
   $('dictBtn').addEventListener('click',function(){active='dict';document.querySelector('.top').classList.remove('open');render();showMain();});
+  $('dbBtn').addEventListener('click',function(){active='database';document.querySelector('.top').classList.remove('open');render();showMain();});
   $('mList').addEventListener('click',function(){setMv(document.body.getAttribute('data-mv')==='list'?'main':'list');});
   $('mMore').addEventListener('click',function(){var t=document.querySelector('.top'),o=t.classList.toggle('open');this.setAttribute('aria-expanded',o);});
   setMv('main');
@@ -850,7 +859,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;te.dn=iso(TODAY);tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
-    var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict')?v:+v;render();showMain();return;}
+    var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict'||v==='database')?v:+v;render();showMain();return;}
     var sb=e.target.closest('[data-sent]');if(sb){var sid=sb.getAttribute('data-sent');sent[sid]=!sent[sid];render();return;}
     var cb=e.target.closest('[data-copy]');if(cb){var n=notes().filter(function(z){return z.id===cb.getAttribute('data-copy');})[0];
       try{navigator.clipboard.writeText(n.msg).then(function(){toast('Текст скопирован');},function(){toast('Не удалось скопировать');});}catch(err){toast('Не удалось скопировать');}return;}
@@ -1199,6 +1208,19 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     r.onload=function(){try{apply(JSON.parse(r.result));render();toast('Копия загружена: клиентов '+clients.length);}catch(e){toast('Файл не подходит: это не копия базы');}};
     r.readAsText(f);
   }
+
+  document.addEventListener('click',function(e){
+    if(e.target.id==='expBtn'){exportBackup();return;}
+    if(e.target.id==='impBtn'){
+      if(!confirm('Загрузка копии заменит текущие данные CRM. Продолжить?'))return;
+      var input=$('impFile');input.value='';input.click();return;
+    }
+    if(e.target.id==='clrBtn'){
+      if(!confirm('Удалить всех клиентов и связанные с ними дела из CRM и Supabase? Это действие нельзя отменить.'))return;
+      clients=[];sent={};nextNum=1001;nextId=1;demo=false;tabs=[];active='today';filter='all';render();toast('База очищена');
+    }
+  });
+  document.addEventListener('change',function(e){if(e.target.id==='impFile'&&e.target.files&&e.target.files[0])importBackup(e.target.files[0]);});
 
   if(!load()){openTab(1);openTab(3);}
   active='today';render();
