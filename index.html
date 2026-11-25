@@ -465,7 +465,14 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   /* Supabase (PostgreSQL). Тестовый проект с вымышленными данными; ключ публичный.
      Если сервер недоступен, приложение работает от localStorage, как раньше. */
   var SB_URL='https://ijbvfrasngqsilelmhyq.supabase.co',SB_KEY='sb_publishable_V4m4BQZHhybEDgjL9ALKyA_6TljZJxh';
-  var remote={state:'off',loaded:false,last:{},timer:null,busy:false,again:false};
+  var remote={state:'off',loaded:false,last:{},timer:null,busy:false,again:false,at:null,p:Promise.resolve(true)};
+  var PKEY='crm-residencias-pending',DPKEY='crm-residencias-dict-pending';
+  function setFlag(k,on){try{if(on)localStorage.setItem(k,'1');else localStorage.removeItem(k);}catch(e){}}
+  function getFlag(k){try{return localStorage.getItem(k)==='1';}catch(e){return false;}}
+  function hasUnsynced(){
+    if(!remote.loaded)return false;
+    return clients.some(function(c){return remote.last[c.id]!==JSON.stringify(toRows(c));})||Object.keys(remote.last).some(function(id){return !byId(+id);});
+  }
   function sb(path,opt){
     opt=opt||{};
     return fetch(SB_URL+'/rest/v1/'+path,{method:opt.method||'GET',
@@ -495,16 +502,29 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function remoteLoad(){
     return Promise.all([sb('clients?select=*&order=id'),sb('case_log?select=*&order=id')]).then(function(a){
-      clients=fromRemote(a[0],a[1]);
+      var srv=fromRemote(a[0],a[1]),keepLocal=false,localSnap=null;
+      if(getFlag(PKEY)){try{localSnap=localStorage.getItem(KEY);}catch(e){}}
+      if(localSnap){
+        keepLocal=confirm('В этом браузере есть изменения, которые не успели сохраниться в Supabase (например, пропала связь).\n\nОК: отправить их на сервер.\nОтмена: загрузить данные с сервера, а эти изменения не сохранять.');
+        if(!keepLocal){try{localStorage.setItem(KEY+'-unsent',localSnap);}catch(e){}setFlag(PKEY,false);}
+      }
+      clients=srv;
       nextId=clients.reduce(function(m,c){return Math.max(m,c.id+1);},1);
       nextNum=clients.reduce(function(m,c){return Math.max(m,c.num+1);},1001);
       remote.last={};clients.forEach(function(c){remote.last[c.id]=JSON.stringify(toRows(c));});
-      remote.loaded=true;remote.state='ok';
+      if(keepLocal){
+        var srvIds={};clients.forEach(function(c){srvIds[c.id]=c;});
+        try{apply(JSON.parse(localSnap));}catch(e){clients=srv;keepLocal=false;}
+        if(keepLocal){var have={};clients.forEach(function(c){have[c.id]=1;});Object.keys(srvIds).forEach(function(id){if(!have[id])clients.push(srvIds[id]);});
+          nextId=clients.reduce(function(m,c){return Math.max(m,c.id+1);},nextId);nextNum=clients.reduce(function(m,c){return Math.max(m,c.num+1);},nextNum);}
+      }
+      remote.loaded=true;remote.state='ok';remote.at=new Date();
+      if(keepLocal)setTimeout(function(){remotePush();},0);
     });
   }
   function remotePush(){
-    if(!remote.loaded)return;
-    if(remote.busy){remote.again=true;return;}
+    if(!remote.loaded)return Promise.resolve(false);
+    if(remote.busy)return remote.p.then(function(){return remotePush();});
     remote.busy=true;remote.again=false;
     var seen={},jobs=[];
     clients.forEach(function(c){
@@ -522,10 +542,13 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     Object.keys(remote.last).forEach(function(id){
       if(!seen[id])jobs.push(function(){return sb('clients?id=eq.'+(+id),{method:'DELETE'}).then(function(){delete remote.last[id];});});
     });
-    jobs.reduce(function(p,j){return p.then(j);},Promise.resolve()).then(function(){remote.state='ok';},function(){remote.state='err';})
-      .then(function(){remote.busy=false;renderTop();if(remote.again)remotePush();});
+    remote.p=jobs.reduce(function(p,j){return p.then(j);},Promise.resolve()).then(function(){remote.state='ok';remote.at=new Date();return true;},function(){remote.state='err';return false;})
+      .then(function(ok){remote.busy=false;if(ok&&!hasUnsynced())setFlag(PKEY,false);renderTop();return ok;});
+    renderTop();return remote.p;
   }
-  function remoteSoon(){if(!remote.loaded)return;clearTimeout(remote.timer);remote.timer=setTimeout(remotePush,600);}
+  function remoteSoon(){if(!remote.loaded)return;setFlag(PKEY,true);clearTimeout(remote.timer);remote.timer=setTimeout(remotePush,600);}
+  window.addEventListener('online',function(){if(remote.loaded&&(remote.state==='err'||hasUnsynced()))remotePush();});
+  setInterval(function(){if(remote.loaded&&remote.state==='err')remotePush();},30000);
 
   function byId(id){return clients.filter(function(c){return c.id===id;})[0];}
   function first(c){var p=c.name.split(' ');return p[1]||p[0];}
@@ -590,7 +613,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function urgentCount(){var u={};notes().forEach(function(x){if(x.sev==='crit'&&!sent[x.id])u[x.cid]=1;});return Object.keys(u).length;}
 
-  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},1800);}
+  function toast(t,ms){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},ms||1800);}
   function setMv(v){document.body.setAttribute('data-mv',v);var b=$('mList');if(b)b.textContent=v==='list'?'← К карточке':'☰ Клиенты';}
   function showMain(){setMv('main');var m=$('main');if(m)m.scrollTop=0;}
   function openTab(id){if(tabs.indexOf(id)<0)tabs.push(id);active=id;render();showMain();}
@@ -779,8 +802,8 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function renderTop(){
     $('demoPill').hidden=!demo;
     var s=$('stat');
-    if(remote.state==='ok'){s.className='stat';s.textContent=remote.busy?'Сохраняется в Supabase…':'Сохранено в Supabase'+(savedAt?', '+savedAt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'');}
-    else if(remote.state==='err'){s.className='stat bad';s.textContent='Supabase недоступен: изменения только в этом браузере';}
+    if(remote.state==='ok'){s.className='stat';s.textContent=remote.busy?'Сохраняется в Supabase…':'Сохранено в Supabase'+(remote.at?', '+remote.at.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'');}
+    else if(remote.state==='err'){s.className='stat bad';s.textContent='НЕ сохранено в Supabase (нет связи или ошибка). Изменения только в этом браузере. Нажмите, чтобы повторить';}
     else if(storeOk){s.className='stat';s.textContent=savedAt?'Сохранено в этом браузере, '+savedAt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Данные сохраняются в этом браузере';}
     else{s.className='stat bad';s.textContent='Не сохраняется: браузер блокирует хранилище. Делайте копии в файл';}
   }
@@ -945,10 +968,13 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     render();
     if(remote.loaded){
       sb('app_settings',{method:'POST',prefer:'resolution=merge-duplicates,return=minimal',body:[{key:'dictionary',value:snap,updated_at:new Date().toISOString()}]})
-        .then(function(){toast('Справочник сохранён');},function(){toast('Сохранено в браузере: Supabase недоступен');});
-    }else toast('Справочник сохранён');
+        .then(function(){setFlag(DPKEY,false);toast('Справочник сохранён');},function(){setFlag(DPKEY,true);toast('Справочник НЕ сохранён на сервере (нет связи или ошибка). Он только в этом браузере',6000);});
+    }else toast('Справочник сохранён только в этом браузере: Supabase не подключён',5000);
   }
   function dictLoadRemote(){
+    if(getFlag(DPKEY)){
+      return sb('app_settings',{method:'POST',prefer:'resolution=merge-duplicates,return=minimal',body:[{key:'dictionary',value:dictPick(),updated_at:new Date().toISOString()}]}).then(function(){setFlag(DPKEY,false);},function(){}).catch(function(){});
+    }
     return sb('app_settings?key=eq.dictionary&select=value').then(function(r){
       if(r&&r[0]&&dictApply(r[0].value)){try{localStorage.setItem(DKEY,JSON.stringify(dictPick()));}catch(e){}dictDraft=null;}
     }).catch(function(){});
@@ -996,8 +1022,10 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     blurActive(false);
     if(!isDirty(c)){delete c._snap;render();toast('Изменений нет');return;}
     delete c._snap;render();
-    if(remote.loaded){clearTimeout(remote.timer);remotePush();}
-    toast('Сохранено');
+    if(remote.loaded){
+      clearTimeout(remote.timer);toast('Сохраняется…',8000);
+      remotePush().then(function(ok){toast(ok?'Сохранено в Supabase':'НЕ сохранено на сервере (нет связи или ошибка сервера). Изменения только в этом браузере, отправим при первой возможности',6000);});
+    }else toast(storeOk?'Сохранено только в этом браузере: Supabase не подключён':'НЕ сохранено: браузер блокирует хранилище',5000);
   }
   function cancelCard(){
     if(active==='dict'){dictCancel();return;}
@@ -1013,7 +1041,9 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(b.getAttribute('data-card')==='save')saveCard();else cancelCard();});
   document.addEventListener('keydown',function(e){
     if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')&&(typeof active==='number'||active==='dict')){e.preventDefault();saveCard();}});
-  window.addEventListener('beforeunload',function(e){if(clients.some(isDirty)||dictDirty()){e.preventDefault();e.returnValue='';}});
+  $('stat').addEventListener('click',function(){if(remote.state==='err'){toast('Повторная отправка…');remotePush().then(function(ok){toast(ok?'Сохранено в Supabase':'Связи с Supabase по-прежнему нет',3500);});}});
+  $('stat').style.cursor='pointer';
+  window.addEventListener('beforeunload',function(e){if(clients.some(isDirty)||dictDirty()||(remote.loaded&&(remote.state==='err'||remote.busy||hasUnsynced()))){e.preventDefault();e.returnValue='';}});
   function val(id){var el=$(id);return el?el.value:'';}
   function act(a){
     var c=byId(active);if(!c)return;
