@@ -319,10 +319,6 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     <span class="tools">
       <span class="stat" id="stat"></span>
       <button class="btn small ghost" id="dictBtn" type="button">Справочник</button>
-      <button class="btn small ghost" id="expBtn" type="button">Сохранить копию</button>
-      <button class="btn small ghost" id="impBtn" type="button">Загрузить копию</button>
-      <button class="btn small ghost" id="clrBtn" type="button">Очистить базу</button>
-      <input type="file" id="impFile" accept=".json,application/json" hidden>
     </span>
   </div>
   <div class="body noright" id="body">
@@ -1192,25 +1188,17 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#noteBtn'))addEntry();});
   document.addEventListener('keydown',function(e){if(e.target.id==='noteIn'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addEntry();}});
 
-  $('expBtn').addEventListener('click',function(){
+  function exportBackup(){
     try{var b=new Blob([snapshot()],{type:'application/json'}),a=document.createElement('a');
       a.href=URL.createObjectURL(b);a.download='crm-rezidencii-'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();a.remove();toast('Копия сохранена в файл');}
     catch(e){toast('Не удалось сохранить файл');}
-  });
-  $('impBtn').addEventListener('click',function(){$('impFile').click();});
-  $('impFile').addEventListener('change',function(){
-    var f=this.files&&this.files[0];if(!f)return;var inp=this;
+  }
+  function importBackup(f){
+    if(!f)return;
     var r=new FileReader();
-    r.onload=function(){try{apply(JSON.parse(r.result));render();toast('Копия загружена: клиентов '+clients.length);}catch(e){toast('Файл не подходит: это не копия базы');}inp.value='';};
+    r.onload=function(){try{apply(JSON.parse(r.result));render();toast('Копия загружена: клиентов '+clients.length);}catch(e){toast('Файл не подходит: это не копия базы');}};
     r.readAsText(f);
-  });
-  var clrT=null;
-  $('clrBtn').addEventListener('click',function(){
-    var b=this;
-    if(!clrT){b.textContent='Точно очистить?';clrT=setTimeout(function(){b.textContent='Очистить базу';clrT=null;},3500);return;}
-    clearTimeout(clrT);clrT=null;b.textContent='Очистить базу';
-    clients=[];sent={};nextNum=1001;nextId=1;demo=false;tabs=[];active='today';filter='all';render();toast('База очищена');
-  });
+  }
 
   if(!load()){openTab(1);openTab(3);}
   active='today';render();
