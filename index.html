@@ -891,11 +891,13 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function cbMark(i){var els=cbPop.querySelectorAll('.cbo');if(!els.length)return;cbIdx=(i+els.length)%els.length;
     [].forEach.call(els,function(el,k){el.classList.toggle('hi',k===cbIdx);});var el=els[cbIdx];
     if(el.offsetTop<cbPop.scrollTop)cbPop.scrollTop=el.offsetTop;else if(el.offsetTop+el.offsetHeight>cbPop.scrollTop+cbPop.clientHeight)cbPop.scrollTop=el.offsetTop+el.offsetHeight-cbPop.clientHeight;}
+  function cbViewportMove(){if(cbIn&&document.activeElement===cbIn)cbPlace();else cbClose();}
   document.addEventListener('focusin',function(e){if(isCb(e.target))cbOpen(e.target);});
   document.addEventListener('mousedown',function(e){
     var t=e.target;
     if(cbPop.contains(t)){e.preventDefault();var o=t.closest('.cbo');if(o)cbPick(cbPop._items[+o.getAttribute('data-i')]);return;}
     if(isCb(t)&&document.activeElement===t&&cbPop.hidden)cbOpen(t);});
+  document.addEventListener('click',function(e){if(isCb(e.target)&&cbPop.hidden)cbOpen(e.target);});
   document.addEventListener('input',function(e){var t=e.target;if(isCb(t)&&document.activeElement===t)cbOpen(t,t.value);});
   document.addEventListener('keydown',function(e){
     var t=e.target;if(!isCb(t))return;
@@ -904,8 +906,9 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     else if(e.key==='Escape'&&!cbPop.hidden){e.preventDefault();cbClose();}
     else if(e.key==='Tab')cbClose();});
   document.addEventListener('focusout',function(e){if(isCb(e.target))cbClose();});
-  window.addEventListener('resize',cbClose);
-  document.getElementById('main').addEventListener('scroll',cbClose);
+  window.addEventListener('resize',cbViewportMove);
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',cbViewportMove);
+  document.getElementById('main').addEventListener('scroll',cbViewportMove);
   /* ===== Справочник опций (вкладка «Справочник») ===== */
   var DICTS=[
     {k:'situ',t:'Административный статус',coded:true},
