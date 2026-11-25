@@ -323,7 +323,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
 <body>
 <div class="app">
   <div class="top">
-    <span class="logo">Резиденции</span>
+    <span class="logo">Клиенты и сроки резиденций</span>
     <button class="btn small mnav" id="mList" type="button">☰ Клиенты</button>
     <button class="btn small ghost mmore" id="mMore" type="button" aria-label="Меню" aria-expanded="false">⋯</button>
     <span class="demo" id="demoPill">Демо-данные.</span>
@@ -706,7 +706,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function feedCard(x){
     var d=!!sent[x.id],cl=x.kind==='client'?byId(x.cid):null,wl=cl&&cl.wa?waLink(cl.phone):'';
     return '<div class="card note '+x.sev+(d?' done':'')+'" data-card="'+x.cid+'" title="Открыть карточку клиента"><h5>'+esc(x.title)+'</h5><div class="small-t">'+esc(x.text)+'</div>'+
-      (x.kind==='client'?'<div class="msg"><small>Сообщение клиенту в WhatsApp или Telegram</small>'+esc(x.msg)+'</div>':'<div style="height:8px"></div>')+
+      (x.kind==='client'?'<div class="msg"><small>Сообщение клиенту в WhatsApp</small>'+esc(x.msg)+'</div>':'<div style="height:8px"></div>')+
       '<div class="actions">'+(x.kind==='client'?(wl?'<a class="btn small wa-btn" href="'+wl+'?text='+encodeURIComponent(x.msg)+'" target="_blank" rel="noopener">Открыть в WhatsApp</a>':'')+'<button class="btn small'+(wl?' ghost':'')+'" data-copy="'+x.id+'" type="button">Скопировать текст</button><button class="btn small ghost" data-sent="'+x.id+'" type="button">'+(d?'Вернуть в список':'Отметить отправленным')+'</button>':'')+
       (x.kind==='task'?'<button class="btn small" data-tc="'+x.cid+'" data-tl="'+esc(x.lid)+'" type="button">Выполнено</button>':'')+
       (x.kind==='completed'?'<button class="btn small" data-tu="'+x.cid+'" data-tul="'+esc(x.lid)+'" type="button">Вернуть в работу</button>':'')+
