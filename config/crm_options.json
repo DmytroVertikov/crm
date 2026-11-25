@@ -88,195 +88,123 @@
         {
           "value": "no_lucrativa",
           "label_es": "No lucrativa",
-          "label_ru": "ВНЖ без права на работу",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "ВНЖ без права на работу"
         },
         {
           "value": "cuenta_ajena",
           "label_es": "Cuenta ajena",
-          "label_ru": "Работа по найму",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Работа по найму"
         },
         {
           "value": "cuenta_propia",
           "label_es": "Cuenta propia",
-          "label_ru": "Самозанятость",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Самозанятость"
         },
         {
           "value": "trabajo_temporada",
           "label_es": "Trabajo de temporada",
           "label_ru": "Сезонная работа",
-          "situacion": [
-            "residencia_temporal"
-          ],
           "note": "Сезонность, макс. 9 месяцев/год, возможность повторного найма"
         },
         {
           "value": "reagrupacion_familiar",
           "label_es": "Reagrupación familiar",
-          "label_ru": "Воссоединение семьи",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Воссоединение семьи"
         },
         {
           "value": "teletrabajo_internacional",
           "label_es": "Teletrabajo de carácter internacional",
           "label_ru": "Международный телеработник (цифровой кочевник)",
-          "situacion": [
-            "residencia_temporal"
-          ],
           "note": "Специальный режим Ley 14/2013"
         },
         {
           "value": "profesional_altamente_cualificado",
           "label_es": "Profesional altamente cualificado",
-          "label_ru": "Высококвалифицированный специалист",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Высококвалифицированный специалист"
         },
         {
           "value": "tarjeta_azul_ue",
           "label_es": "Tarjeta azul-UE",
-          "label_ru": "Голубая карта ЕС",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Голубая карта ЕС"
         },
         {
           "value": "emprendedores",
           "label_es": "Emprendedores",
-          "label_ru": "Предприниматели",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Предприниматели"
         },
         {
           "value": "investigadores",
           "label_es": "Investigadores",
-          "label_ru": "Исследователи",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Исследователи"
         },
         {
           "value": "traslado_intraempresarial",
           "label_es": "Traslado intraempresarial",
-          "label_ru": "Внутрикорпоративный перевод",
-          "situacion": [
-            "residencia_temporal"
-          ]
+          "label_ru": "Внутрикорпоративный перевод"
         },
         {
           "value": "familiar_ciudadano_es",
           "label_es": "Familiar de ciudadano español",
-          "label_ru": "Член семьи гражданина Испании",
-          "situacion": [
-            "residencia_familiar_es"
-          ]
+          "label_ru": "Член семьи гражданина Испании"
         },
         {
           "value": "familiar_ciudadano_ue",
           "label_es": "Familiar de ciudadano de la UE",
-          "label_ru": "Член семьи гражданина ЕС",
-          "situacion": [
-            "residencia_familiar_ue"
-          ]
+          "label_ru": "Член семьи гражданина ЕС"
         },
         {
           "value": "arraigo_social",
           "label_es": "Arraigo social",
-          "label_ru": "Социальное укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales",
-            "irregular"
-          ]
+          "label_ru": "Социальное укоренение"
         },
         {
           "value": "arraigo_sociolaboral",
           "label_es": "Arraigo sociolaboral",
-          "label_ru": "Трудовое укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales",
-            "irregular"
-          ]
+          "label_ru": "Трудовое укоренение"
         },
         {
           "value": "arraigo_socioformativo",
           "label_es": "Arraigo socioformativo",
-          "label_ru": "Учебное укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales",
-            "irregular"
-          ]
+          "label_ru": "Учебное укоренение"
         },
         {
           "value": "arraigo_familiar",
           "label_es": "Arraigo familiar",
           "label_ru": "Семейное укоренение",
-          "situacion": [
-            "residencia_circunstancias_excepcionales",
-            "irregular"
-          ],
           "note": "Сохранён согласно Reglamento RD 1155/2024"
         },
         {
           "value": "arraigo_segunda_oportunidad",
           "label_es": "Arraigo de segunda oportunidad",
-          "label_ru": "Укоренение «второй шанс»",
-          "situacion": [
-            "residencia_circunstancias_excepcionales",
-            "irregular"
-          ]
+          "label_ru": "Укоренение «второй шанс»"
         },
         {
           "value": "razones_humanitarias",
           "label_es": "Razones humanitarias",
-          "label_ru": "Гуманитарные причины",
-          "situacion": [
-            "residencia_circunstancias_excepcionales"
-          ]
+          "label_ru": "Гуманитарные причины"
         },
         {
           "value": "proteccion_temporal",
           "label_es": "Protección temporal",
-          "label_ru": "Временная защита",
-          "situacion": [
-            "proteccion_temporal"
-          ]
+          "label_ru": "Временная защита"
         },
         {
           "value": "larga_duracion",
           "label_es": "Larga duración",
-          "label_ru": "Долгосрочный ВНЖ",
-          "situacion": [
-            "residencia_larga_duracion"
-          ]
+          "label_ru": "Долгосрочный ВНЖ"
         },
         {
           "value": "larga_duracion_ue",
           "label_es": "Larga duración-UE",
-          "label_ru": "Долгосрочный ВНЖ-ЕС",
-          "situacion": [
-            "residencia_larga_duracion"
-          ]
+          "label_ru": "Долгосрочный ВНЖ-ЕС"
         },
         {
           "value": "otra",
           "label_es": "Otra autorización",
-          "label_ru": "Другое разрешение",
-          "situacion": []
+          "label_ru": "Другое разрешение"
         }
       ],
-      "description": "Детализирует конкретный тип разрешения. Справочник расширяемый. Для нелегального статуса может быть указано основание, на которое клиент планирует подавать (например, Arraigo)."
+      "description": "Справочник расширяемый. Варианты основания выбираются независимо от административного статуса клиента."
     },
     {
       "id": "estado_expediente",
