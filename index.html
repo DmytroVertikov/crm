@@ -167,6 +167,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .client-head input,.client-head select{width:100%;min-width:0}
 .client-name{font:700 22px/1.2 var(--font);letter-spacing:-.01em;background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 7px;margin-left:-7px;min-width:180px;max-width:100%}
 .client-name:hover,.client-name:focus{background:var(--bg);border-color:var(--line)}
+.note[data-card]{cursor:pointer}
 .subsec{font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 6px}
 .fut{margin:10px 0}.fut summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
 .phone-cell{display:flex;flex-direction:column;gap:3px}
@@ -611,7 +612,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(f==='renew')return /-exp/.test(x.id);
     return false;
   }
-  function urgentCount(){var u={};notes().forEach(function(x){if(x.sev==='crit'&&!sent[x.id])u[x.cid]=1;});return Object.keys(u).length;}
+  function urgentCount(){var u={};notes().forEach(function(x){if((x.sev==='crit'&&!sent[x.id])||(x.kind==='task'&&x.left===0))u[x.cid]=1;});return Object.keys(u).length;}
 
   function toast(t,ms){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},ms||1800);}
   function setMv(v){document.body.setAttribute('data-mv',v);var b=$('mList');if(b)b.textContent=v==='list'?'← К карточке':'☰ Клиенты';}
@@ -680,7 +681,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   /* Center: Today */
   function feedCard(x){
     var d=!!sent[x.id],cl=x.kind==='client'?byId(x.cid):null,wl=cl&&cl.wa?waLink(cl.phone):'';
-    return '<div class="card note '+x.sev+(d?' done':'')+'"><h5>'+esc(x.title)+'</h5><div class="small-t">'+esc(x.text)+'</div>'+
+    return '<div class="card note '+x.sev+(d?' done':'')+'" data-card="'+x.cid+'" title="Открыть карточку клиента"><h5>'+esc(x.title)+'</h5><div class="small-t">'+esc(x.text)+'</div>'+
       (x.kind==='client'?'<div class="msg"><small>Сообщение клиенту в WhatsApp или Telegram</small>'+esc(x.msg)+'</div>':'<div style="height:8px"></div>')+
       '<div class="actions">'+(x.kind==='client'?(wl?'<a class="btn small wa-btn" href="'+wl+'?text='+encodeURIComponent(x.msg)+'" target="_blank" rel="noopener">Открыть в WhatsApp</a>':'')+'<button class="btn small'+(wl?' ghost':'')+'" data-copy="'+x.id+'" type="button">Скопировать текст</button><button class="btn small ghost" data-sent="'+x.id+'" type="button">'+(d?'Вернуть в список':'Отметить отправленным')+'</button>':'')+
       (x.kind==='task'?'<button class="btn small" data-tc="'+x.cid+'" data-tl="'+esc(x.lid)+'" type="button">Выполнено</button>':'')+'<button class="btn small ghost" data-open="'+x.cid+'" type="button">Открыть клиента</button></div></div>';
@@ -840,6 +841,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(e.key==='Enter'){e.preventDefault();createClient(e.target.value.trim());}
   });
   document.addEventListener('click',function(e){
+    var cd=e.target.closest('[data-card]');if(cd&&!e.target.closest('button,a,input,textarea,select,.msg')){openTab(+cd.getAttribute('data-card'));return;}
     var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
