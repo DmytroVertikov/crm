@@ -114,8 +114,7 @@
         {
           "value": "teletrabajo_internacional",
           "label_es": "Teletrabajo de carácter internacional",
-          "label_ru": "Международный телеработник (цифровой кочевник)",
-          "note": "Специальный режим Ley 14/2013"
+          "label_ru": "Международный телеработник (цифровой кочевник)"
         },
         {
           "value": "profesional_altamente_cualificado",
