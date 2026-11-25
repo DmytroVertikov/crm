@@ -761,6 +761,9 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function parseDMY(t){var m=/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/.exec((t||'').trim());if(!m)return undefined;
     var d=new Date(+m[3],+m[2]-1,+m[1]);return d.getMonth()===+m[2]-1&&d.getDate()===+m[1]?iso(d):undefined;}
+  function formatDMYInput(el){var raw=el.value,pos=el.selectionStart==null?raw.length:el.selectionStart,before=raw.slice(0,pos).replace(/\D/g,'').length,d=raw.replace(/\D/g,'').slice(0,8);
+    var v=d.length<=2?d:d.length<=4?d.slice(0,2)+'.'+d.slice(2):d.slice(0,2)+'.'+d.slice(2,4)+'.'+d.slice(4);
+    if(v!==raw){el.value=v;var next=Math.min(v.length,before+(before>2?1:0)+(before>4?1:0));el.setSelectionRange(next,next);}}
   function waLink(ph){
     var t=String(ph||'').trim(),d=t.replace(/\D/g,'');
     if(!d)return '';
@@ -1095,6 +1098,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   document.addEventListener('input',function(e){var t=e.target;
     if(t.id==='noteIn'){var c=byId(active);if(c)c.draft=t.value;}
     else if(t.id==='leText'){var c2=byId(active);if(c2&&c2._ed)c2._ed.text=t.value;}
+    else if(t.id==='fExp'){formatDMYInput(t);updateSaveBar(true);}
     else if(EDIT_ID.test(t.id))updateSaveBar(true);});
   document.addEventListener('focusout',function(e){if(EDIT_ID.test(e.target.id))updateSaveBar();});
   /* ===== Интерфейс ленты ===== */
