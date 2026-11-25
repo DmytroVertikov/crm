@@ -423,7 +423,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   var clients=[
     {id:1,num:1031,name:'Иванова Мария',phone:'+34 611 000 101',expiry:off(75),cs:{type:'Продление',filed:off(-40),reqRecv:off(-12),reqDue:off(3),answered:null,result:null},notes:[N('note','Клиентка прислала новый padrón, нужно приложить к ответу.',-11),N('note','Договорились созвониться в среду по списку документов.',-4)]},
-    {id:2,num:1034,name:'Петров Алексей',phone:'+34 611 000 102',expiry:null,cs:{type:'Первичная подача',filed:off(-95),reqRecv:null,reqDue:null,answered:null,result:null},notes:[N('note','Подали через сеть. Ведомство пока молчит.',-95)]},
+    {id:2,num:1034,name:'Петров Алексей',phone:'+34 611 000 102',expiry:null,cs:{type:'Первичная подача',filed:off(-95),reqRecv:null,reqDue:null,answered:null,result:null},notes:[N('note','Подали через сеть. Миграционная служба пока не отвечает.',-95)]},
     {id:3,num:1029,name:'Смирнова Ольга',phone:'+34 611 000 103',expiry:off(28),cs:null,notes:[N('note','Работает по контракту, документы от работодателя будут к концу месяца.',-20)]},
     {id:4,num:1022,name:'Козлов Дмитрий',phone:'+34 611 000 104',expiry:off(96),cs:null,notes:[]},
     {id:5,num:1017,name:'Назарова Елена',phone:'+34 611 000 105',expiry:off(210),cs:null,notes:[]},
@@ -550,7 +550,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var s=stage(c),e=c.expiry?diff(c.expiry):null;
     if(s==='answer'){var d=diff(c.cs.reqDue);return {k:d<0?'crit':d<=10?'warn':'info',t:d<0?'Срок ответа прошёл':'Нужно ответить',f:'answer'};}
     if(s==='decision')return {k:'info',t:'Ждём решения',f:'wait'};
-    if(s==='wait')return {k:'info',t:'Ждём ответа ведомства',f:'wait'};
+    if(s==='wait')return {k:'info',t:'Ждём ответа миграционной службы',f:'wait'};
     if(s==='closed')return {k:'good',t:'Решение: '+c.cs.result.text,f:'closed'};
     if(e!==null&&e<0)return {k:'crit',t:'Срок резиденции истёк',f:'renew'};
     if(e!==null&&e<=60)return {k:e<=30?'crit':'warn',t:'Пора подавать на продление',f:'renew'};
@@ -559,7 +559,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function derived(c){
     var s=stage(c),e=c.expiry?diff(c.expiry):null;
     if(s==='answer')return {t:'Ответить на запрос до '+fmt(c.cs.reqDue),k:diff(c.cs.reqDue)<=3?'crit':'warn'};
-    if(s==='wait')return {t:'Ждать ответа ведомства',k:'ok'};
+    if(s==='wait')return {t:'Ждать ответа миграционной службы',k:'ok'};
     if(s==='decision')return {t:'Ждать решения',k:'ok'};
     if(s==='closed')return {t:c.cs.result.text==='Одобрено'?'Обновить срок резиденции':'Обсудить результат с клиентом',k:'warn'};
     if(e!==null&&e<=60)return {t:'Связаться с клиентом: готовим продление',k:e<=30?'crit':'warn'};
@@ -695,7 +695,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     function tile(f,cls,label){return '<button class="tile '+cls+'" type="button" data-tf="'+f+'" aria-pressed="'+(filter===f)+'"><b>'+cnt(f)+'</b><span>'+label+'</span></button>';}
     var all=notes().filter(feedOk),tk=all.filter(function(x){return x.kind==='task';}),n=all.filter(function(x){return x.kind!=='task';});
     var h='<h1>Сегодня</h1><p class="sub">'+TODAY.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'. Нажмите на плитку, чтобы отфильтровать список слева и ленту.</p>';
-    h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или 30 дней и меньше')+tile('answer','warn','Ждут нашего ответа ведомству')+tile('renew','info','Резиденция истекает за 60 дней')+tile('work','good','Дел в работе')+'</div>';
+    h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или 30 дней и меньше')+tile('answer','warn','Ждут нашего ответа миграционной службе')+tile('renew','info','Резиденция истекает за 60 дней')+tile('work','good','Дел в работе')+'</div>';
     if(filter==='work'||filter==='closed'){var cl=clients.filter(function(c){return matches(c,filter);}),wc={};all.forEach(function(x){wc[x.cid]=1;});
       h+='<div class="small-t" style="margin:6px 0">Клиентов в списке: '+cl.length+'. Карточки в ленте есть у '+Object.keys(wc).length+', у остальных нет напоминаний и задач.</div>';}
     if(tk.length||filter==='all'){
