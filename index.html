@@ -80,6 +80,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .dsb .dn{opacity:.7;font-size:12px;margin-left:4px}
 .dcard{padding:14px 16px}
 .dtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.dtools select{min-width:min(100%,280px);max-width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .dsortl{margin-left:12px;font-size:13px;color:var(--muted)}
 .dreset{margin-left:auto}
 .dnote{margin:0 0 10px;font-size:13px;color:var(--muted)}
@@ -168,7 +169,6 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .fut{margin:10px 0}.fut summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
 .phone-cell{display:flex;flex-direction:column;gap:3px}
 .client-head .wa-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:20px}
-.profile-actions{display:flex;justify-content:flex-end;margin-top:8px}
 .btn.danger{color:var(--crit);border:1px solid var(--crit);background:transparent}
 .btn.danger:hover{background:var(--crit-soft)}
 .client-head .wa-chk{flex-direction:row;align-items:center;gap:5px;font-weight:500;color:var(--muted);cursor:pointer}
@@ -725,6 +725,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function renderDatabase(){
     $('main').innerHTML='<h1>База данных</h1><p class="sub">Резервное копирование и восстановление данных CRM.</p>'+
       '<div class="card"><h3 class="sec" style="margin-top:0">Резервная копия</h3><p class="dnote">Сохраните файл с данными клиентов и дел на устройство. Импорт копии заменит текущие данные в CRM.</p><div class="dtools"><button class="btn" id="expBtn" type="button">Сохранить копию в JSON</button><button class="btn ghost" id="impBtn" type="button">Загрузить копию из JSON</button><input type="file" id="impFile" accept=".json,application/json" hidden></div></div>'+
+      '<div class="card"><h3 class="sec" style="margin-top:0">Удаление клиента</h3><p class="dnote">Выберите клиента, чтобы удалить его вместе с делами, задачами и записями журнала.</p><div class="dtools"><select id="deleteClientSelect" aria-label="Клиент для удаления"><option value="">Выберите клиента</option>'+clients.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ru');}).map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+' · №'+c.num+'</option>';}).join('')+'</select><button class="btn danger" id="deleteClientBtn" type="button" disabled>Удалить клиента</button></div></div>'+
       '<div class="card"><h3 class="sec" style="margin-top:0">Очистка базы</h3><p class="dnote">Удалит всех клиентов и связанные с ними дела. Это действие синхронизируется с Supabase и не может быть отменено.</p><button class="btn ghost" id="clrBtn" type="button">Очистить базу</button></div>';
   }
 
@@ -780,7 +781,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var wl=waLink(c.phone);
     h+='<div class="phone-cell"><label>Телефон<input class="inl" id="fPhone" value="'+esc(c.phone)+'"></label><div class="wa-row"><label class="wa-chk"><input type="checkbox" id="fWa"'+(c.wa?' checked':'')+'> WhatsApp на этом номере</label>'+(c.wa&&wl?'<a class="wa-link" href="'+wl+'" target="_blank" rel="noopener">Открыть чат</a>':'')+'</div></div>';
     c.phones2.forEach(function(p,i){h+='<label>Телефон '+(i+2)+'<input class="inl" id="fPh2_'+i+'" value="'+esc(p)+'" placeholder="Оставьте пустым, чтобы удалить"></label>';});
-    h+='<button class="btn small ghost phone-add" type="button" data-act="addphone">+ Другой телефон</button></div><div class="profile-actions"><button class="btn small danger" type="button" data-delete-client>Удалить клиента</button></div>';
+    h+='<button class="btn small ghost phone-add" type="button" data-act="addphone">+ Другой телефон</button></div>';
     var w=nieCheck(c.nie);if(w)h+='<div class="profile-hint" id="nieHelp">'+esc(w)+'</div>';
     return h+'</section>';
   }
@@ -866,12 +867,12 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   });
   document.addEventListener('click',function(e){
     var cd=e.target.closest('[data-card]');if(cd&&!e.target.closest('button,a,input,textarea,select,.msg')){openTab(+cd.getAttribute('data-card'));return;}
-    var del=e.target.closest('[data-delete-client]');if(del&&typeof active==='number'){
-      var dc=byId(active);if(!dc)return;
+    if(e.target.id==='deleteClientBtn'){
+      var dc=byId(+$('deleteClientSelect').value);if(!dc)return;
       if(!confirm('Удалить клиента «'+dc.name+'» вместе с делами, задачами и записями журнала? Это действие нельзя отменить.'))return;
       var deletedId=dc.id;clients=clients.filter(function(c){return c.id!==deletedId;});tabs=tabs.filter(function(id){return id!==deletedId;});
       Object.keys(sent).forEach(function(id){if(id===String(deletedId)||id.indexOf(String(deletedId)+'-')===0)delete sent[id];});
-      adding=false;active=tabs.length?tabs[tabs.length-1]:'today';render();showMain();toast('Клиент удалён');return;
+      active='database';render();showMain();toast('Клиент удалён');return;
     }
     var tu=e.target.closest('[data-tu]');if(tu){var uc=byId(+tu.getAttribute('data-tu')),ue=uc&&uc.log.filter(function(z){return z.id===tu.getAttribute('data-tul');})[0];if(ue){ue.done=false;delete ue.dn;uc.cs=caseOf(uc);render();toast('Задача возвращена в работу');}return;}
     var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;te.dn=iso(TODAY);tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
@@ -1028,6 +1029,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
       if(u&&!confirm('Этот вариант выбран у клиентов: '+u+'. После сохранения у них останется обычный текст. Удалить?'))return;
       dictDraft[dictKey].splice(i3,1);dictRender();updateSaveBar();}
   });
+  document.addEventListener('change',function(e){if(e.target.id==='deleteClientSelect')$('deleteClientBtn').disabled=!e.target.value;});
   document.addEventListener('input',function(e){
     var t=e.target;if(active!=='dict'||!t.getAttribute||!t.getAttribute('data-df'))return;
     dictDraft[dictKey][+t.getAttribute('data-di')][t.getAttribute('data-df')]=t.value;updateSaveBar();});
