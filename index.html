@@ -549,12 +549,12 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function stepOf(c){var P=openPlans(c);if(P.length){var p=P[0],d=diff(p.date);var o=OPT.next.filter(function(x){return lab(x)===p.plan;})[0];return {t:(o?o.ru:(p.plan||p.text))+' ('+fmtS(p.date)+')',k:d<0?'crit':d<=3?'warn':'ok'};}return derived(c)||{t:'нет шага',k:'none'};}
   function lastDate(c){var L=sortedLog(c).filter(function(e){return e.act!=='plan';});return L.length?L[L.length-1].date:null;}
 
-  function notes(){
+  function notesOf(c){
     var out=[];
-    clients.forEach(function(c){
+    [c].forEach(function(c){
       var s=stage(c),e=c.expiry?diff(c.expiry):null;
       if(s==='answer'){var d=diff(c.cs.reqDue);
-        if(d<=10)out.push({id:c.id+'-req',cid:c.id,sev:d<0?'crit':d<=3?'warn':'info',left:d,kind:'internal',
+        out.push({id:c.id+'-req',cid:c.id,sev:d<0?'crit':d<=3?'warn':'info',left:d,kind:'internal',
           title:c.name+': ответить на запрос',
           text:(d<0?'Срок истёк '+days(-d)+' назад ('+fmt(c.cs.reqDue)+').':'Срок ответа '+fmt(c.cs.reqDue)+', осталось '+days(d)+'.')+' Дело №'+c.num+'.'});}
       if(c.cs&&e!==null&&e<=60){
@@ -576,6 +576,14 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     });
     out.sort(function(a,b){return a.left-b.left;});return out;
   }
+  function notes(){var out=[];clients.forEach(function(c){out=out.concat(notesOf(c));});out.sort(function(a,b){return a.left-b.left;});return out;}
+  /* Единое правило: клиент попадает в плитку и список, если у него есть карточка в ленте по этому фильтру. */
+  function reasonOf(f,x){
+    if(f==='urgent')return x.sev==='crit';
+    if(f==='answer')return /-req$/.test(x.id);
+    if(f==='renew')return /-exp/.test(x.id);
+    return false;
+  }
   function urgentCount(){var u={};notes().forEach(function(x){if(x.sev==='crit'&&!sent[x.id])u[x.cid]=1;});return Object.keys(u).length;}
 
   function toast(t){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},1800);}
@@ -588,17 +596,14 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   function matches(c,f){
     var st=status(c),s=stage(c);
     if(f==='all')return true;
-    if(f==='urgent')return st.k==='crit'||(!!c.cs&&!!c.expiry&&diff(c.expiry)<=30)||openPlans(c).some(function(e){return diff(e.date)<0;});
-    if(f==='answer')return s==='answer';
-    if(f==='renew')return st.f==='renew'||(!!c.expiry&&diff(c.expiry)<=60&&!!c.cs);
+    if(f==='urgent'||f==='answer'||f==='renew')return notesOf(c).some(function(x){return reasonOf(f,x);});
     if(f==='work')return s!=='none'&&s!=='closed';
     if(f==='closed')return st.f==='closed';
     return true;
   }
   function feedOk(x){
-    if(filter==='urgent')return x.sev==='crit';
-    if(filter==='answer')return /-req$/.test(x.id);
-    if(filter==='renew')return /-exp/.test(x.id);
+    if(filter==='urgent'||filter==='answer'||filter==='renew')return reasonOf(filter,x);
+    if(filter==='all'&&/-req$/.test(x.id)&&x.left>10)return false;
     if(filter==='work'||filter==='closed'){var cc=byId(x.cid);return !!cc&&matches(cc,filter);}
     return true;
   }
@@ -646,6 +651,8 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var all=notes().filter(feedOk),tk=all.filter(function(x){return x.kind==='task';}),n=all.filter(function(x){return x.kind!=='task';});
     var h='<h1>Сегодня</h1><p class="sub">'+TODAY.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'. Нажмите на плитку, чтобы отфильтровать список слева и ленту.</p>';
     h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или 30 дней и меньше')+tile('answer','warn','Ждут нашего ответа ведомству')+tile('renew','info','Резиденция истекает за 60 дней')+tile('work','good','Дел в работе')+'</div>';
+    if(filter==='work'||filter==='closed'){var cl=clients.filter(function(c){return matches(c,filter);}),wc={};all.forEach(function(x){wc[x.cid]=1;});
+      h+='<div class="small-t" style="margin:6px 0">Клиентов в списке: '+cl.length+'. Карточки в ленте есть у '+Object.keys(wc).length+', у остальных нет напоминаний и задач.</div>';}
     if(tk.length||filter==='all'){
       var od=tk.filter(function(x){return x.left<0;}),td=tk.filter(function(x){return x.left===0;}),fu=tk.filter(function(x){return x.left>0;});
       h+='<h3 class="sec">Мои задачи</h3>';
