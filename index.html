@@ -153,6 +153,7 @@ h3.sec{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--
 .step.now .dot{border-color:var(--accent);background:var(--accent-soft)}
 .step b{display:block;font-size:14.5px}
 .small-t{color:var(--muted);font-size:13px}
+.step-edit{border:0;background:none;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
 .inline{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:flex-end}
 .inline label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
 .client-head{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(4,minmax(0,1fr));align-items:start;gap:10px;margin-bottom:3px}
@@ -779,7 +780,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var h='<div class="two"><section class="box tint tint-blue"><h4>Цель и этап дела</h4><div class="g2">';
     h+=suggF('fGoal','Главная цель',OPT.goal.map(lab),c.goal);
     h+=comboF('fEstado',OPT.name.estado,OPT.estado,c.estado,true);
-    h+='<div class="full small-t">Следующий шаг: <b>'+esc(stepOf(c).t)+'</b>. Меняется в ленте ниже, действие «Запланировать».</div>';
+    h+='<div class="full small-t">Следующий шаг: <b>'+esc(stepOf(c).t)+'</b> <button class="step-edit" type="button" data-edit-next>Изменить</button></div>';
     h+='</div></section><section class="box tint tint-green"><h4>Миграционный статус клиента</h4><div class="g2">';
     h+=comboF('fSitu',OPT.name.situ,OPT.situ,c.situ,true);
     h+=comboF('fTipo',OPT.name.tipo,OPT.tipo,c.tipo,true);
@@ -1125,7 +1126,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
       '<div class="leb">'+btn+'<button class="ib" type="button" data-la="edit" data-lid="'+esc(e.id)+'" aria-label="Изменить запись" title="Изменить">✎</button><button class="ib del" type="button" data-la="del" data-lid="'+esc(e.id)+'" aria-label="Удалить запись" title="Удалить">×</button></div></div>';
   }
   function logHtml(c){
-    var h='<h3 class="sec">Журнал работы</h3>'+closeBar(c)+logForm(c),P=openPlans(c),L=sortedLog(c).reverse().filter(function(e){return !(e.act==='plan'&&!e.done);});
+    var h='<h3 class="sec" id="journalTitle">Журнал работы</h3>'+closeBar(c)+logForm(c),P=openPlans(c),L=sortedLog(c).reverse().filter(function(e){return !(e.act==='plan'&&!e.done);});
     if(P.length)h+='<h3 class="sec">Запланировано</h3><div class="card lelist">'+P.map(function(e){return entryHtml(c,e);}).join('')+'</div>';
     h+=L.length?'<div class="lelist">'+L.map(function(e){return entryHtml(c,e);}).join('')+'</div>':(P.length?'':'<div class="small-t">Записей пока нет. Добавьте первую: подачу, звонок или примечание.</div>');
     return h;
@@ -1134,6 +1135,10 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-lcat]');if(!b||typeof active!=='number')return;
     var c=byId(active),pr=b.getAttribute('data-lcat').split('|'),st=pr[0]==='lf'?lf(c):c._ed,cat=CATS.filter(function(x){return x.k===pr[1];})[0];
     if(!c||!st||!cat)return;if(catOf(st.act).k!==cat.k)setAct(st,cat.acts[0]);render();});
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-edit-next]');if(!b||typeof active!=='number')return;
+    var c=byId(active);if(!c)return;var f=lf(c);setAct(f,'plan');render();
+    var j=$('journalTitle');if(j)j.scrollIntoView({behavior:'smooth',block:'start'});
+    var p=$('lfPlan');if(p)p.focus({preventScroll:true});});
   function lfChange(c,id,v){
     var st=id.charAt(1)==='f'?lf(c):c._ed;if(!st)return;
     var k=id.slice(2);
