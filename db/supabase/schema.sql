@@ -84,7 +84,10 @@ create table if not exists public.case_log (
   channel text,                      -- для общения: канал связи
   outcome text,                      -- для общения: результат (необязательно)
   plan text,                         -- для plan: что сделать (запись на будущую дату entry_date)
-  done boolean not null default false -- для plan: выполнено
+  done boolean not null default false, -- для plan: выполнено
+  created_on date,                   -- для plan: когда задача создана
+  done_on date,                      -- для plan: когда выполнена
+  moved_on date                      -- для plan: когда в последний раз перенесена
 );
 create index if not exists idx_case_log_client on public.case_log(client_id, entry_date);
 alter table public.case_log enable row level security;

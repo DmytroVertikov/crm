@@ -488,7 +488,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var cs=caseOf(c);
     var k=cs?{client_id:c.id,type:null,filed:cs.filed,req_received:cs.reqRecv||null,req_due:cs.reqDue||null,
       answered:cs.answered||null,result_text:cs.result?cs.result.text:null,result_date:cs.result?cs.result.date:null}:null;
-    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,plan:e.plan||null,channel:e.chan||null,outcome:e.out||null,done:!!e.done};});
+    var n=c.log.map(function(e){return {client_id:c.id,entry_date:e.date,action:e.act,comment:e.text||'',due_date:e.due||null,result:e.res||null,plan:e.plan||null,channel:e.chan||null,outcome:e.out||null,done:!!e.done,created_on:e.cr||null,done_on:e.dn||null,moved_on:e.mv||null};});
     return {cl:cl,k:k,n:n};
   }
   function fromRemote(cl,lg){
@@ -496,7 +496,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
       return {id:r.id,num:r.num,name:r.name,phone:r.phone||'',wa:!!r.phone_whatsapp,expiry:r.permit_expiry,draft:'',situ:r.situacion||'',tipo:r.tipo_autorizacion||'',estado:r.estado_expediente||'',doc:r.tipo_documento||'',otroDoc:r.otro_documento||'',goal:r.goal||'',nat:r.nationality||'',nie:r.nie||'',phones2:r.extra_phones||[],
         log:lg.filter(function(z){return z.client_id===r.id;}).sort(function(x,y){return x.id-y.id;}).map(function(z){
           var e={id:'r'+z.id,date:z.entry_date,act:z.action,text:z.comment||''};
-          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.plan)e.plan=z.plan;if(z.channel)e.chan=z.channel;if(z.outcome)e.out=z.outcome;e.done=!!z.done;return e;})};
+          if(z.due_date)e.due=z.due_date;if(z.result)e.res=z.result;if(z.plan)e.plan=z.plan;if(z.channel)e.chan=z.channel;if(z.outcome)e.out=z.outcome;if(z.created_on)e.cr=z.created_on;if(z.done_on)e.dn=z.done_on;if(z.moved_on)e.mv=z.moved_on;e.done=!!z.done;return e;})};
     });
     out.forEach(normClient);
     return out;
@@ -575,7 +575,16 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   }
   function openPlans(c){return sortedLog(c).filter(function(e){return e.act==='plan'&&!e.done;});}
   function stepOf(c){var P=openPlans(c);if(P.length){var p=P[0],d=diff(p.date);var o=OPT.next.filter(function(x){return lab(x)===p.plan;})[0];return {t:(o?o.ru:(p.plan||p.text))+' ('+fmtS(p.date)+')',k:d<0?'crit':d<=3?'warn':'ok'};}return derived(c)||{t:'нет шага',k:'none'};}
-  function lastDate(c){var L=sortedLog(c).filter(function(e){return e.act!=='plan';});return L.length?L[L.length-1].date:null;}
+  /* Последняя активность менеджера по клиенту: даты записей ленты, а для задач — дата создания (cr), выполнения (dn) и переноса (mv).
+     Автоматический пересчёт статусов и сроков активностью не считается. */
+  function lastDate(c){
+    var m=null;
+    c.log.forEach(function(e){
+      var ds=e.act==='plan'?[e.cr,e.dn,e.mv]:[e.date];
+      ds.forEach(function(d){if(d&&(!m||d>m))m=d;});
+    });
+    return m;
+  }
 
   function notesOf(c){
     var out=[];
@@ -842,7 +851,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   });
   document.addEventListener('click',function(e){
     var cd=e.target.closest('[data-card]');if(cd&&!e.target.closest('button,a,input,textarea,select,.msg')){openTab(+cd.getAttribute('data-card'));return;}
-    var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
+    var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;te.dn=iso(TODAY);tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
     var t=e.target.closest('[data-tab]');if(t&&!e.target.closest('[data-close]')){var v=t.getAttribute('data-tab');active=(v==='today'||v==='dict')?v:+v;render();showMain();return;}
@@ -1120,6 +1129,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(e.act==='zapros'&&e.due)meta.push('ответить до '+fmt(e.due));
     if(e.act==='reshenie'&&e.res)meta.push(e.res);
     if(e.act==='plan'&&e.plan)meta.push(e.plan);
+    if(e.act==='plan'){if(e.cr)meta.push('создано '+fmt(e.cr));if(e.mv)meta.push('перенесено '+fmt(e.mv));if(e.done&&e.dn)meta.push('выполнено '+fmt(e.dn));}
     if(e.chan)meta.push(e.chan);if(e.out)meta.push('Результат: '+e.out);
     var pn=e.act==='plan'?(e.done?'План выполнен':'Запланировано'):(ACT_NAME[e.act]||e.act);
     var btn=e.act==='plan'?(e.done?'<button class="ib" type="button" data-la="undo" data-lid="'+esc(e.id)+'" aria-label="Вернуть в план" title="Вернуть в план">↩</button>':'<button class="ib ok" type="button" data-la="done" data-lid="'+esc(e.id)+'" aria-label="Отметить выполненным" title="Выполнено">✓</button>'):'';
@@ -1148,7 +1158,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     if(f.act==='primech'&&!txt){toast('Напишите комментарий');return;}
     if(f.act==='zapros'&&!f.due){toast('Укажите, до какого числа нужно ответить');return;}
     if(f.act==='plan'&&!f.plan&&!txt){toast('Напишите, что нужно сделать');return;}
-    var x={};if(f.act==='plan')x.plan=f.plan;if(catOf(f.act).k==='obsh'){x.chan=f.chan;x.out=f.out;}if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
+    var x={};if(f.act==='plan'){x.plan=f.plan;x.cr=iso(TODAY);}if(catOf(f.act).k==='obsh'){x.chan=f.chan;x.out=f.out;}if(f.act==='zapros')x.due=f.due;if(f.act==='reshenie')x.res=f.res;
     c.log.push(mkLog(f.act,f.date,txt,x));c.cs=caseOf(c);c.draft='';c._lf=null;render();toast('Запись добавлена');
     var n=$('noteIn');if(n)n.focus();
   }
@@ -1157,14 +1167,19 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     var e=c.log.filter(function(z){return z.id===lid;})[0];
     if(a==='start'){lf(c).act='podacha';render();var n=$('noteIn');if(n)n.focus();return;}
     if(a==='edit'&&e){c._ed={id:e.id,date:e.date,act:e.act,text:e.text||'',due:e.due||e.date,res:e.res||RESULTS[0],plan:e.plan||'',done:!!e.done,chan:e.chan||'',out:e.out||''};render();return;}
-    if((a==='done'||a==='undo')&&e){e.done=(a==='done');c.cs=caseOf(c);render();toast(e.done?'Отмечено выполненным':'Возвращено в план');return;}
+    if((a==='done'||a==='undo')&&e){e.done=(a==='done');if(e.done)e.dn=iso(TODAY);else delete e.dn;c.cs=caseOf(c);render();toast(e.done?'Отмечено выполненным':'Возвращено в план');return;}
     if(a==='cancel'){c._ed=null;render();return;}
     if(a==='save'&&c._ed){
       var d=c._ed,t=c.log.filter(function(z){return z.id===d.id;})[0];if(!t)return;
       if(!d.date){toast('Укажите дату');return;}
       if(d.act==='zapros'&&!d.due){toast('Укажите, до какого числа нужно ответить');return;}
-      t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.due;delete t.res;delete t.plan;delete t.chan;delete t.out;if(catOf(d.act).k==='obsh'){if(d.chan)t.chan=d.chan;if(d.out)t.out=d.out;}t.done=d.act==='plan'&&!!d.done;if(d.act==='plan')t.plan=(d.plan||'').trim();
+      var oA=t.act,oD=t.date,oDn=!!t.done;t.date=d.date;t.act=d.act;t.text=(d.text||'').trim();delete t.due;delete t.res;delete t.plan;delete t.chan;delete t.out;if(catOf(d.act).k==='obsh'){if(d.chan)t.chan=d.chan;if(d.out)t.out=d.out;}t.done=d.act==='plan'&&!!d.done;if(d.act==='plan')t.plan=(d.plan||'').trim();
       if(d.act==='zapros')t.due=d.due;if(d.act==='reshenie')t.res=d.res;
+      if(t.act==='plan'){
+        if(oA!=='plan')t.cr=iso(TODAY);
+        else if(oD!==t.date&&!t.done)t.mv=iso(TODAY);
+        if(!oDn&&t.done)t.dn=iso(TODAY);else if(oDn&&!t.done)delete t.dn;
+      }else{delete t.cr;delete t.dn;delete t.mv;}
       c._ed=null;c.cs=caseOf(c);render();toast('Запись сохранена');return;}
     if(a==='del'&&e){if(!confirm('Удалить запись «'+(ACT_NAME[e.act]||e.act)+'» от '+fmt(e.date)+'?'))return;
       c.log=c.log.filter(function(z){return z.id!==lid;});if(c._ed&&c._ed.id===lid)c._ed=null;c.cs=caseOf(c);render();toast('Запись удалена');}
