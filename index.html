@@ -606,6 +606,10 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     out.sort(function(a,b){return a.left-b.left;});return out;
   }
   function notes(){var out=[];clients.forEach(function(c){out=out.concat(notesOf(c));});out.sort(function(a,b){return a.left-b.left;});return out;}
+  function completedTasks(){var out=[];clients.forEach(function(c){c.log.forEach(function(p){if(p.act!=='plan'||!p.done)return;
+    out.push({id:c.id+'-done-'+p.id,cid:c.id,lid:p.id,sev:'good',left:0,completedAt:p.dn||p.date,kind:'completed',title:c.name+': '+planLabel(p.plan||p.text||'задача'),
+      text:'Выполнено '+fmt(p.dn||p.date)+'. Срок '+fmt(p.date)+'.'+(p.text?' '+p.text:'')});});});
+    out.sort(function(a,b){return b.completedAt.localeCompare(a.completedAt);});return out;}
   /* Единое правило: клиент попадает в плитку и список, если у него есть карточка в ленте по этому фильтру. */
   function reasonOf(f,x){
     if(f==='urgent')return x.sev==='crit';
@@ -688,23 +692,26 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
     return '<div class="card note '+x.sev+(d?' done':'')+'" data-card="'+x.cid+'" title="Открыть карточку клиента"><h5>'+esc(x.title)+'</h5><div class="small-t">'+esc(x.text)+'</div>'+
       (x.kind==='client'?'<div class="msg"><small>Сообщение клиенту в WhatsApp или Telegram</small>'+esc(x.msg)+'</div>':'<div style="height:8px"></div>')+
       '<div class="actions">'+(x.kind==='client'?(wl?'<a class="btn small wa-btn" href="'+wl+'?text='+encodeURIComponent(x.msg)+'" target="_blank" rel="noopener">Открыть в WhatsApp</a>':'')+'<button class="btn small'+(wl?' ghost':'')+'" data-copy="'+x.id+'" type="button">Скопировать текст</button><button class="btn small ghost" data-sent="'+x.id+'" type="button">'+(d?'Вернуть в список':'Отметить отправленным')+'</button>':'')+
-      (x.kind==='task'?'<button class="btn small" data-tc="'+x.cid+'" data-tl="'+esc(x.lid)+'" type="button">Выполнено</button>':'')+'<button class="btn small ghost" data-open="'+x.cid+'" type="button">Открыть клиента</button></div></div>';
+      (x.kind==='task'?'<button class="btn small" data-tc="'+x.cid+'" data-tl="'+esc(x.lid)+'" type="button">Выполнено</button>':'')+
+      (x.kind==='completed'?'<button class="btn small" data-tu="'+x.cid+'" data-tul="'+esc(x.lid)+'" type="button">Вернуть в работу</button>':'')+
+      '<button class="btn small ghost" data-open="'+x.cid+'" type="button">Открыть клиента</button></div></div>';
   }
   function renderToday(){
     function cnt(f){return clients.filter(function(c){return matches(c,f);}).length;}
     function tile(f,cls,label){return '<button class="tile '+cls+'" type="button" data-tf="'+f+'" aria-pressed="'+(filter===f)+'"><b>'+cnt(f)+'</b><span>'+label+'</span></button>';}
-    var all=notes().filter(feedOk),tk=all.filter(function(x){return x.kind==='task';}),n=all.filter(function(x){return x.kind!=='task';});
+    var all=notes().filter(feedOk),tk=all.filter(function(x){return x.kind==='task';}),done=filter==='all'?completedTasks():[],n=all.filter(function(x){return x.kind!=='task';});
     var h='<h1>Сегодня</h1><p class="sub">'+TODAY.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+'. Нажмите на плитку, чтобы отфильтровать список слева и ленту.</p>';
     h+='<div class="tiles">'+tile('urgent','crit','Срочно: просрочено или 30 дней и меньше')+tile('answer','warn','Ждут нашего ответа миграционной службе')+tile('renew','info','Резиденция истекает за 60 дней')+tile('work','good','Дел в работе')+'</div>';
     if(filter==='work'||filter==='closed'){var cl=clients.filter(function(c){return matches(c,filter);}),wc={};all.forEach(function(x){wc[x.cid]=1;});
       h+='<div class="small-t" style="margin:6px 0">Клиентов в списке: '+cl.length+'. Карточки в ленте есть у '+Object.keys(wc).length+', у остальных нет напоминаний и задач.</div>';}
-    if(tk.length||filter==='all'){
+    if(tk.length||done.length||filter==='all'){
       var od=tk.filter(function(x){return x.left<0;}),td=tk.filter(function(x){return x.left===0;}),fu=tk.filter(function(x){return x.left>0;});
       h+='<h3 class="sec">Мои задачи</h3>';
       if(od.length)h+='<h4 class="subsec">Просроченные ('+od.length+')</h4>'+od.map(feedCard).join('');
       if(td.length)h+='<h4 class="subsec">Сегодня ('+td.length+')</h4>'+td.map(feedCard).join('');
       if(!od.length&&!td.length)h+='<div class="empty">Просроченных задач и задач на сегодня нет</div>';
       if(fu.length)h+='<details class="fut"><summary>Будущие ('+fu.length+')</summary>'+fu.map(feedCard).join('')+'</details>';
+      if(done.length)h+='<h4 class="subsec">Выполненные ('+done.length+')</h4>'+done.map(feedCard).join('');
     }
     h+='<h3 class="sec">Что требует внимания</h3>';
     h+=n.length?n.map(feedCard).join(''):'<div class="empty">Срочных задач нет</div>';
@@ -852,6 +859,7 @@ h3.sec{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);font
   });
   document.addEventListener('click',function(e){
     var cd=e.target.closest('[data-card]');if(cd&&!e.target.closest('button,a,input,textarea,select,.msg')){openTab(+cd.getAttribute('data-card'));return;}
+    var tu=e.target.closest('[data-tu]');if(tu){var uc=byId(+tu.getAttribute('data-tu')),ue=uc&&uc.log.filter(function(z){return z.id===tu.getAttribute('data-tul');})[0];if(ue){ue.done=false;delete ue.dn;uc.cs=caseOf(uc);render();toast('Задача возвращена в работу');}return;}
     var tk=e.target.closest('[data-tl]');if(tk){var tc=byId(+tk.getAttribute('data-tc')),te=tc&&tc.log.filter(function(z){return z.id===tk.getAttribute('data-tl');})[0];if(te){te.done=true;te.dn=iso(TODAY);tc.cs=caseOf(tc);render();toast('Задача выполнена');}return;}
     var o=e.target.closest('[data-open]');if(o){openTab(+o.getAttribute('data-open'));return;}
     var x=e.target.closest('[data-close]');if(x){var id=+x.getAttribute('data-close');var cc=byId(id);if(cc&&isDirty(cc)){if(!confirm('В карточке есть несохранённые изменения. Закрыть без сохранения?'))return;cancelEdit(cc);}tabs=tabs.filter(function(t){return t!==id;});if(active===id)active=tabs.length?tabs[tabs.length-1]:'today';render();return;}
