@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Telegram: сообщения</title>
+<style>
+:root{color-scheme:light dark;--bg:#f4f5f3;--surface:#fff;--ink:#18232b;--muted:#5d6b75;--line:#dde2e0;--accent:#1c5566;--accent-ink:#fff;--own:#e1eef1;--crit:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#11181d;--surface:#192228;--ink:#e7edf0;--muted:#98a7b0;--line:#2a373f;--accent:#6fb7c9;--accent-ink:#0c1a20;--own:#1d3640;--crit:#ff8c84}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:0 auto;padding:16px}
+h1{font-size:18px}
+form,.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,button{font:inherit;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:inherit}
+input{flex:1;min-width:200px}
+button{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);cursor:pointer}
+button:disabled{opacity:.6}
+#stat{color:var(--muted);font-size:13px;min-height:1.5em}
+#stat.bad{color:var(--crit)}
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px}
+.chat h2{font-size:15px;margin:0 0 8px}
+.m{max-width:85%;padding:6px 10px;border:1px solid var(--line);border-radius:10px;margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.own{margin-left:auto;background:var(--own)}
+.m small{display:block;color:var(--muted);font-size:11.5px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Telegram: сообщения (тест)</h1>
+  <p><a href="index.html">← CRM</a></p>
+  <form id="login">
+    <input type="password" id="pw" placeholder="Пароль страницы" autocomplete="current-password" required>
+    <button>Войти</button>
+  </form>
+  <div class="bar" id="bar" hidden>
+    <button id="sync">Подключить бота</button>
+    <button id="out">Выйти</button>
+  </div>
+  <p id="stat" role="status"></p>
+  <div id="list"></div>
+</main>
+<script>
+(function(){
+  var API='https://ijbvfrasngqsilelmhyq.supabase.co/functions/v1/telegram',pw='',timer=null,busy=false;
+  var $=function(id){return document.getElementById(id);};
+  function status(t,bad){$('stat').textContent=t;$('stat').className=bad?'bad':'';}
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  function render(msgs){
+    var chats={},order=[];
+    msgs.forEach(function(m){
+      var id=m.chat_id;
+      if(!chats[id]){chats[id]={name:'',items:[]};order.push(id);}
+      if(!chats[id].name)chats[id].name=(m.chat_name||'')+(m.chat_username?' @'+m.chat_username:'');
+      chats[id].items.unshift(m);
+    });
+    $('list').textContent='';
+    if(!msgs.length)$('list').appendChild(el('p','','Сообщений пока нет.'));
+    order.forEach(function(id){
+      var c=chats[id],box=el('section','chat');
+      box.appendChild(el('h2','',c.name||'Собеседник '+id));
+      c.items.forEach(function(m){
+        var d=el('div','m'+(m.is_out?' own':''),m.body||'[без текста]');
+        d.appendChild(el('small','',new Date(m.sent_at).toLocaleString('ru-RU')));
+        box.appendChild(d);
+      });
+      $('list').appendChild(box);
+    });
+  }
+  function logout(){pw='';clearInterval(timer);try{sessionStorage.removeItem('tg-pw');}catch(e){}$('login').hidden=false;$('bar').hidden=true;$('list').textContent='';}
+  function load(sync){
+    if(busy)return;busy=true;$('sync').disabled=true;
+    if(sync)status('Подключаю бота…');
+    var used=pw;
+    fetch(API+(sync?'?action=setup':''),{method:sync?'POST':'GET',headers:{'x-page-password':used}})
+      .then(function(r){return r.json().then(function(d){return{code:r.status,d:d};});})
+      .then(function(r){
+        if(used!==pw)return;
+        if(r.code===401){logout();status(r.d.error,true);return;}
+        if(r.d.error){status(r.d.error,true);return;}
+        try{sessionStorage.setItem('tg-pw',pw);}catch(e){}
+        $('login').hidden=true;$('bar').hidden=false;render(r.d.messages);
+        status((sync?'Бот @'+r.d.bot+' подключён к CRM. ':'')+'Обновлено '+new Date().toLocaleTimeString('ru-RU'));
+      })
+      .catch(function(){status('Нет связи с сервером',true);})
+      .then(function(){busy=false;$('sync').disabled=false;});
+  }
+  function start(){load(false);clearInterval(timer);timer=setInterval(function(){if(!document.hidden)load(false);},10000);}
+  $('login').addEventListener('submit',function(e){e.preventDefault();pw=$('pw').value;$('pw').value='';start();});
+  $('sync').addEventListener('click',function(){load(true);});
+  $('out').addEventListener('click',function(){logout();status('');});
+  try{pw=sessionStorage.getItem('tg-pw')||'';}catch(e){}
+  if(pw)start();
+})();
+</script>
+</body>
+</html>
